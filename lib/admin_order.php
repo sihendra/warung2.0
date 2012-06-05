@@ -150,23 +150,8 @@ function wrg_showAdminOrderPage() {
                 <td><?=$order->statusName?></td>
                 <?php endif;?>
                 <td>
-                    <a href="<?=$logURL?>" title="Log Status" class="btn btn-mini">Log</a>
-                    
-                    <form class="edit-form form-horizontal hide info" action="<?=$wo->getAdminPageURL()?>">
-                        <input type="hidden" name="page_id" value="<?=$wo->getAdminPageId()?>">
-                        <input type="hidden" name="adm_page" value="order_update">
-                        <input type="hidden" name="order_id" value="<?=$order->id?>">
-                        <label for id="status_id">Status</label>
-                        <select name="status_id" id="status_id" class="span2">
-                            <?php foreach($statuses as $status_id=>$description) { ?>
-                            <option value="<?=$status_id?>" <?=$status_id==$order->statusId?"selected":''?>><?=$description?></option>
-                            <?php } ?>
-                        </select>
-                        <label for id="delivery_number">Airway Bill</label>
-                        <input type="text" class="span2" name="delivery_number" value="<?=(!empty($order->deliveryNumber)?$order->deliveryNumber:'')?>"></input>
-                        <label></label>
-                        <button type="submit" class="btn btn-primary update-btn">Update</button>
-                    </form>
+                    <a href="<?=$editURL?>" title="Edit Status" class="btn btn-small">Status</a>
+		    <a href="<?=$logURL?>" title="Log Status" class="btn btn-small">Log</a>
                 </td>
             </tr>
             <? } ?>
@@ -199,15 +184,6 @@ function wrg_showAdminOrderPage() {
                 
             });
             
-            // ajax update
-            $('.edit-form').ajaxForm({
-                beforeSubmit: function(e){
-                    $("body").css("cursor", "progress");
-                },
-                success: function() { 
-                    window.location.reload();
-                }
-            }); 
         });
     </script> 
     
