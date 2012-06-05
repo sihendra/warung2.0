@@ -191,7 +191,7 @@ function wrg_showAdminOrderPage() {
             $("tr.show-info").click(function(e) {
                 
                 // prevent event bubbling
-                if ($(e.target).is("td") || $(e.target).is("dd") || $(e.target).is("dt") || $(e.target).is("address")) {
+                if ($(e.target).is("td") || $(e.target).is("dd") || $(e.target).is("dt") || $(e.target).is("address")|| $(e.target).is("li")) {
                     $(this).find(".info").each(function(i,val){
                         $(val).toggle();
                     });
@@ -603,7 +603,12 @@ function wrg_htmlGetCart() {
             </tr>
             <?php endforeach;?>
             <tr>
-                <td colspan="100%"><input type="submit" name="wc_update" value="Update" title="Klik tombol ini jika ingin mengupdate jumlah barang"/></td>
+                <td colspan="100%">
+                    <div class="pull-right">
+                    <a href="<?=add_query_arg("wrg_action","clearCart", $wo->getHomeURL())?>" class="btn clear-cart">Clear Cart</a>
+                    <input type="submit" name="wc_update" class="btn" value="Update" title="Klik tombol ini jika ingin mengupdate jumlah barang"/>
+                    </div>
+                </td>
             </tr>
             
             <!-- summary -->
@@ -641,12 +646,18 @@ function wrg_htmlGetCart() {
             $("a.remove-cart-item").click(function(e){
                 e.preventDefault();
 
+                // cursor busy
+                $("body").css("cursor", "progress");
+
                 var removeURL = $(this).attr("href");
                 
                 $.get(removeURL, function(e) {
                     // load cart
                     $.get(cartUrl, function(data2) {
                         $("#cart").html(data2);
+                        
+                        // cursor normal
+                        $("body").css("cursor", "auto");
                     });
                     
                 });
@@ -657,12 +668,42 @@ function wrg_htmlGetCart() {
             // update quantity
             $("#cart-form").ajaxForm(function(e){
                 
+                // cursor busy
+                $("body").css("cursor", "progress");
+                
                 // load cart
                 $.get(cartUrl, function(data2) {
                     $("#cart").html(data2);
+                    
+                    // cursor normal
+                    $("body").css("cursor", "auto");
                 });
                 
             });
+            
+            // clear cart
+            $("a.clear-cart").click(function(e) {
+                e.preventDefault();
+
+                // cursor busy
+                $("body").css("cursor", "progress");
+                
+                var url = $(this).attr("href");
+                
+                $.get(url, function(e) {
+                    // load cart
+                    $.get(cartUrl, function(data2) {
+                        $("#cart").html(data2);
+                        
+                        // cursor normal
+                        $("body").css("cursor", "auto");
+                    });
+                    
+                });
+                
+                return false;
+            });
+            
         });
     </script>
     <?php endif;
