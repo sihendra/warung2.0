@@ -138,9 +138,7 @@ function wrg_showAdminOrderPage() {
                     <div class="info hide">
                         <dl>
                             <dt>Alamat</dt>
-                            <dd>
-                        <address><?=  str_replace("\n", "<br/>", $shippingInfo->address)?></address>
-                        </dd>
+                            <dd><address><?=  str_replace("\n", "<br/>", $shippingInfo->address)?></address></dd>
                         </dl>
                     </div>
                 </td>
@@ -193,7 +191,7 @@ function wrg_showAdminOrderPage() {
             $("tr.show-info").click(function(e) {
                 
                 // prevent event bubbling
-                if ($(e.target).is("td")) {
+                if ($(e.target).is("td") || $(e.target).is("dd") || $(e.target).is("dt") || $(e.target).is("address")) {
                     $(this).find(".info").each(function(i,val){
                         $(val).toggle();
                     });
