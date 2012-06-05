@@ -1,0 +1,265 @@
+/* 
+    Document   : warung
+    Created on : May 18, 2010, 12:23:39 AM
+    Author     : hendra
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block; 
+}
+
+/* ###### admin */
+.form-field {
+	display:block;
+	font-weight: bold;
+	padding: 5 0 2 2px;
+}
+
+.form-group {
+	margin-bottom: 10px;	
+	border: 1px solid;
+}
+
+/* ########### SHIPPING FORM ############*/
+#wCart_shipping_form, #order-summary {
+    /*border: 1px solid;*/
+    padding: 10px;
+    width: 580px;
+}
+#wCart_shipping_form .submit {
+    margin-left: 155px;
+    margin-top: 10px;
+    background: green;
+    border: 1px solid #DDDDDD;
+}
+#wCart_shipping_form label {
+    display:block;
+    float:left;
+    margin-right:5px;
+    text-align:right;
+    width:150px;
+}
+#wCart_shipping_form label.error {
+    width: 250px;
+    display: block;
+    float: left;
+    color: red;
+    padding-left: 10px;
+}
+#wCart_shipping_form .error {
+    border-color: red;
+}
+#wCart_shipping_form .wCart_form_row {
+    padding: 5px 0;
+    clear: both;
+    width: 100%;
+}
+#wCart_shipping_form input[type=text], #wCart_shipping_form select, #wCart_shipping_form textarea {
+    width: 250px;
+    float: left;
+}
+#wCart_shipping_form textarea {
+    height: 50px;
+}
+
+
+#wcart-detailed {
+    width: 580px;
+    padding: 10px;
+}
+
+#wcart-detailed td {
+    vertical-align: top;
+    text-align: right;
+    padding: 4px 4px 0px 4px;
+    border-bottom: 1px solid;
+}
+
+#wcart-detailed th {
+    border: 1px solid;
+    padding: 4px 4px 0px 4px;
+}
+
+#wcart-detailed .wcart-td-footer {
+    border: none;
+}
+
+#wcart_detailed_nav {
+    padding: 20px 0px 0px 0px;
+}
+
+.wcart_total {
+    color: red;
+}
+
+/*
+ * ## ADD 2 CART ##
+*/
+#wCart_add_2_cart {
+    width: 100%;
+    clear:both;
+    padding-top: 20px;
+}
+#wCart_add_2_cart select {
+    margin-left: 10px;
+    margin-right: 4px;
+    padding: 3px;
+}
+
+#wCart_add_2_cart input[type=radio]:checked+label {
+    font-weight: bold;
+}
+
+#wCart_add_2_cart input[type=radio]:checked+label span {
+    font-size: 1.5em;
+}
+
+#wCart_add_2_cart input[type=radio] + label span, .ws_price {
+    color: #ffaa00;
+}
+    
+.ws_price {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+#wCart_add_2_cart input[type=submit] {
+    background: #C60000;
+    border: 1px solid #DDDDDD;
+    margin-left: 40%;
+}
+
+#wCart_confirmation input[type=submit] {
+    background: green;
+    border: 1px solid #DDDDDD;
+    margin-left: 10px;
+}
+
+.wcart_price {
+/*    background-color: green;*/
+    color: #DDDDDD;
+/*    border: 1px solid #DDDDDD;*/
+    width: 340px;
+    font-weight: bold;
+    pading: 5px;
+}
+
+.wcart_price option {
+    background-color: green;
+    padding: 4px;
+    margin: 2px;
+/*    border-bottom: dashed 1px #DDDDDD;*/
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-border-radius: 5px
+}
+
+.wcart_product_opt {
+    margin-bottom: 4px;
+}
+
+/* ###### SUMMARY ##########*/
+#order-summary {
+    width: 580px;
+}
+
+/* ### PRODUCT INFO ####*/
+#wcart_pimage {
+    float:left;
+    border: 1px dashed;
+    padding: 4px;
+}
+
+#wcart_pinfo {
+    font-size: 0.8em;
+    font-weight: bold;
+    width: 50%;
+    float: left;
+    padding: 0px 0px 0px 20px;
+}
+
+#wcart_item_thumbnail img {
+    width: 60px;
+    height: 60px;
+    border: 1px dashed;
+    padding: 4px;
+    float: left;
+}
+
+
+/**
+ * WIDGET
+ */
+
+li.wcart_widget {
+    background-color: green !important;
+    border: 1px dotted #DDDDDD !important;
+    -moz-border-radius: 10px 0px 10px 0px !important;
+    -webkit-border-radius: 10px 0px 10px 0px !important;
+    color: rgb(231,231,231);
+}
+
+li.wcart_widget img {
+    width: 16px !important;
+    height: 16px !important;
+    /*position: absolute !important;*/
+    top: 10px !important;
+    left: -15px !important;
+}
+
+li.wcart_widget div {
+    text-align: center;
+    padding-top: 0px;
+    color: white;
+}
+
+li.wcart_widget div.wcart_widget_nav a {
+/*    padding-left: 100px;*/
+    font-size: 0.8em;
+    color: rgb(231,231,231);
+}
+
+/**
+ * Shipping Sim Page
+ */
+
+div.wcart_shipping_sim_result {
+    border: 1px dotted;
+    background-color: green;
+    padding: 10px;
+    color: white;
+    margin-top: 10px;
+}
+
+div.wcart_shipping_sim {
+    padding: 10px;
+    margin-top: 10px;
+}
+
+div.wcart_shipping_sim select, div.wcart_shipping_sim td > input, div.wcart_shipping_sim td {
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+/**
+* Shopping Cart Detailed
+*/
+
+a.wcart_remove_item div {
+    background-image: url("../images/cancel-16x16.png");
+    background-repeat:no-repeat !important;
+    background-position: center;
+    width: 32px !important;
+    height: 32px !important;
+}
+
+a.wcart_remove_item div span {
+    display: none;
+}
