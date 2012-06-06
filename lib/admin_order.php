@@ -152,7 +152,7 @@ function wrg_showAdminOrderPage() {
                 <?php endif;?>
                 <td>
                     <?php if($order->statusId == 1): ?>
-                    <a href="<?=$sendMailURL?>" title="Send Mail" class="btn btn-small">Send SMS</a>
+                    <a href="<?=$sendMailURL?>" title="Send Mail" class="btn btn-small">Send email</a>
                     <?php endif;?>
                     <a href="<?=$editURL?>" title="Edit Status" class="btn btn-small">Status</a>
 		    <a href="<?=$logURL?>" title="Log Status" class="btn btn-small">Log</a>
@@ -268,20 +268,68 @@ function wrg_showAdminOrderUpdatePage() {
 }
 
 function wrg_orderSendMailTemplate($args=array()) {
-    $ret = 
-         "Mba Sofie,\n".
-         "\n".
-         "Nama:\n%shipping.name%\n".
-         "Telepon:\n%shipping.phone%\n".
-         "Alamat:\n%shipping.address%\n%shipping.city%\n".
-         "\n".
-         "Catatan:\n%shipping.additionalInfo%\n".
-         "\n".
-         "Pesanan:\n".
-         "%order.items%\n".
-         "\n".
-         "Thx,".
-         "Reni";
+    ob_start();
+    $ret = "";
+    
+    ?>
+    <style>
+        table td { 
+            vertical-align: top;
+            border-bottom: 1px solid rgb(238,238,238); 
+            text-align: left;
+            padding-left:10px;
+        }
+
+        table {
+            border-spacing: 0px;
+        }
+
+        .title {
+            text-align: right;
+            font-weight: bold;
+            padding: 2px;
+        }
+
+        table td ul {
+            padding-left: 20px;
+        }
+    </style>
+         <div>
+             <p>Mba Sofie,</p>
+
+         <table>
+             <tr>
+                 <td class="title">Nama</td>
+                <td>%shipping.name%</td>
+             </tr>
+             <tr>
+                 <td class="title">Telepon</td>
+                 <td>%shipping.phone%</td>
+             </tr>
+             <tr>
+                 <td class="title">Alamat</td>
+                 <td>%shipping.address%<br/>%shipping.city%</td>
+             </tr>
+             <tr>
+                 <td class="title">Catatan</td>
+                 <td>%shipping.additionalInfo%</td>
+             </tr>
+             <tr>
+                 <td class="title">Pesanan</td>
+                 <td>%order.items%</td>
+             </tr>
+         </table>
+         
+             <p>
+         Thx,<br/>
+         Reni
+             </p>
+         </div>
+    
+    <?php
+    
+    $ret = ob_get_contents();
+    ob_end_clean();
     
     if (!empty($args)) {
         $ret = WarungUtils::generateTemplate($ret, $args);
@@ -293,55 +341,60 @@ function wrg_orderSendMailTemplate($args=array()) {
 function wrg_showAdminOrderSendMailPage() {
     ob_start();
     
+    // param
     $orderId = $_REQUEST["order_id"];
+    $doSendMail = $_REQUEST["do_sendmail"];
+    
+    $wo = new WarungOptions();
+    $adminURL = $wo->getAdminPageURL();
+    $sendMailURL = add_query_arg(array("order_id"=>$orderId,"adm_page"=>"order_send_mail"), $adminURL);
+    $orderURL = add_query_arg("adm_page","order",$baseURL);
     
     $os = new OrderService();
-    $wo = new WarungOptions();
-    $baseURL = $wo->getAdminPageURL();
-    $orderURL = add_query_arg("adm_page","order",$baseURL);
-
     $order = $os->getOrderById($orderId);
     
-    $updateStatus = "";
+    $result = "";
+    $error = "";
     
     if (isset($order->id)) {
         
-        $shippingInfo = $order->shippingInfo;
+        if (!empty($doSendMail)) {
+            // do send mail    
+            $mailTo = $_REQUEST["mail_to"];
+            $subject = $_REQUEST["mail_subject"];
+            $message = $_REQUEST["mail_message"];
+            
+            
+            if (!empty($mailTo) && !empty($subject) && !empty($message)) {
+                
+                $headers = "Content-type: text/html;\r\n";
+                $headers .= "From: Warungsprei.com <info@warungsprei.com>\r\n";
+                
+                if (mail($mailTo, $subject, $message, $headers)) {
+                    $result = "Email order sudah terkirim";
+                } else {
+                    $error = "Gagal mengirim Email order";
+                }
+            } else {
+                $error = "Please fill required fields";
+            }
+        } else {
+            // show send mailform
+            
+            // get mail template
+            $shippingInfo = $order->shippingInfo;
         
-        // get template
-        $mailTemplate = wrg_orderSendMailTemplate(array(
-                "shipping.name"=>$shippingInfo->name,
-                "shipping.phone"=>$shippingInfo->phone,
-                "shipping.address"=>$shippingInfo->address,
-                "shipping.city"=>$shippingInfo->city,
-                "shipping.additionalInfo"=>$shippingInfo->additionalInfo,
-                "order.items"=>WarungUtils::formatItems($order->items)
-            ));
-        
-        
-        if (!empty($newStatusId)) {
-            // do update
-            $os->updateStatus($orderId, $newStatusId);
-            $updateStatus="Changes Saved";
-        }
-        
-        if (!empty($deliveryNumber)) {
-            $os->updateDeliveryNumber($orderId, $deliveryNumber);
-            $updateStatus="Changes Saved";
-        }
-        
-        if ($updateStatus) {
-            header("location: ".$baseURL);
-            return;
-        }
-        
-        $statuses = $os->getAllStatus();
-        
-    ?>
-    <?php if(!empty($updateStatus)):?>
-    <div class="alert"><?=$updateStatus?></div>
-    <?php endif; ?>
-    <form class="well">
+            $mailTemplate = wrg_orderSendMailTemplate(array(
+                    "shipping.name"=>$shippingInfo->name,
+                    "shipping.phone"=>$shippingInfo->phone,
+                    "shipping.address"=>$shippingInfo->address,
+                    "shipping.city"=>$shippingInfo->city,
+                    "shipping.additionalInfo"=>$shippingInfo->additionalInfo,
+                    "order.items"=>WarungUtils::formatItems($order->items)
+                ));
+            
+            ?>
+    <form id="send_mail_form" class="well" method="POST" action="<?=$sendMailURL?>">
         <input type="hidden" name="order_id" value="<?=$order->id?>">
         
         <label for="mail_to">To</label>
@@ -355,14 +408,36 @@ function wrg_showAdminOrderSendMailPage() {
 
         <label></label>
         <a href="<?=$orderURL?>" class="btn">Back to Order</a>
-        <button type="submit" class="btn btn-primary">Send Mail</button>
+        <input type="submit" class="btn btn-primary" name="do_sendmail" value="Send Mail"/>
         
     </form>
-    
-    
-    <?php
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("form#send_mail_form").validate({
+                rules: {
+                            mail_to: {// compound rule
+                                required: true,
+                                email: true
+                            },
+                            mail_subject: {
+                                required: true
+                            },
+                            mail_message: "required"
+                        }
+            });
+        });
+    </script>
+            <?php
+        }
+        
     } else {
-        echo 'Invalid order id';
+        $error = 'Invalid order id';
+    }
+    
+    if (!empty($error)) {
+        echo '<div class="alert alert-error"><a class="close" href="'.$sendMailURL.'">×</a>'.$error.'</div>';
+    } else if (!empty($result)) {
+        echo '<div class="alert alert-success"><a class="close" href="'.$orderURL.'">×</a>'.$result.'</div>';
     }
     
     $ret = ob_get_contents();

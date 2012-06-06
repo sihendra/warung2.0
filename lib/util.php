@@ -313,17 +313,27 @@ class WarungUtils {
         }
     }
     
-    public static function formatItems($array, $class="") {
-        $ret = '<ul class="'.$class.'">';
+    public static function formatItems($array, $class="", $itemSeparator="") {
+        $ret ="";
+        
+        if (empty($itemSeparator)) {
+            $ret = '<ul class="'.$class.'">';
+        }
         
         // validation
         if (empty($array) && !is_array($array)) return $ret;
         
         foreach($array as $el) {
-            $ret .= "<li>".$el->name." (".$el->quantity.")</li>";
+            if (empty($itemSeparator)) {
+                $ret .= "<li>".$el->name." [".$el->quantity."]</li>";
+            } else {
+                $ret .= $el->name." [".$el->quantity."]".$itemSeparator;
+            }
         }
         
-        $ret .= "</ul>";
+        if (empty($itemSeparator)) {
+            $ret .= "</ul>";
+        }
         
         return $ret;
     }
