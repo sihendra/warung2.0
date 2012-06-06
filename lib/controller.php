@@ -590,7 +590,7 @@ function wrg_showOrderComplete() {
     $admin_email = get_option("admin_email");
     $email_pemesan = $userInfo->email;
     $subject = "[Warungsprei.com] Pemesanan #" . $order_id;
-    $message = wrg_generateTemplate(
+    $message = WarungUtils::generateTemplate(
             wrg_getOrderMessageTemplate(), 
             array(
                 "user.name" =>$userInfo->name,
@@ -697,14 +697,6 @@ function wrg_getOrderMessageTemplate() {
     return $ret;
 }
 
-function wrg_generateTemplate($templateStr, $params) {
-    foreach ($params as $key => $value) {
-        $templateStr = str_replace('%'.$key.'%', $value, $templateStr);
-    }
-    
-    return $templateStr;
-}
-
 function wrg_showAdminPage($content) {
     ob_start();
     
@@ -724,12 +716,15 @@ function wrg_showAdminPage($content) {
                 echo wrg_showAdminOrderLogPage();
             else if ($thePage == "order_add")
                 echo wrg_showAdminOrderAddPage();
+            else if ($thePage == "order_send_mail") 
+                echo wrg_showAdminOrderSendMailPage();
             else if ($thePage == "product_search") 
                 echo wrg_jsonProducts();
             else if ($thePage == "city_search") 
                 echo wrg_jsonCity();
             else if ($thePage == "cart_show") 
                 echo wrg_htmlGetCart();
+            
         } else {
             // default
             // show order

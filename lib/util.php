@@ -389,6 +389,14 @@ class WarungUtils {
             return $theDate->format('d M');
         }
     }
+    
+    public static function generateTemplate($templateStr, $params) {
+        foreach ($params as $key => $value) {
+            $templateStr = str_replace('%'.$key.'%', $value, $templateStr);
+        }
+
+        return $templateStr;
+    }
 
 }
 

@@ -114,6 +114,7 @@ function wrg_showAdminOrderPage() {
                 $shippingInfo = $order->shippingInfo;
                 $editURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_update"), $adminURL);
                 $logURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_status_log"), $adminURL);
+                $sendMailURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_send_mail"), $adminURL);
             ?>
             <tr class="show-info">
                 <td><?=($order->requireAttention?'<span class="label label-warning">Check</span> ':'')?>
@@ -150,6 +151,9 @@ function wrg_showAdminOrderPage() {
                 <td><?=$order->statusName?></td>
                 <?php endif;?>
                 <td>
+                    <?php if($order->statusId == 1): ?>
+                    <a href="<?=$sendMailURL?>" title="Send Mail" class="btn btn-small">Send SMS</a>
+                    <?php endif;?>
                     <a href="<?=$editURL?>" title="Edit Status" class="btn btn-small">Status</a>
 		    <a href="<?=$logURL?>" title="Log Status" class="btn btn-small">Log</a>
                 </td>
@@ -204,6 +208,7 @@ function wrg_showAdminOrderUpdatePage() {
     $os = new OrderService();
     $wo = new WarungOptions();
     $baseURL = $wo->getAdminPageURL();
+    $orderURL = add_query_arg("adm_page","order",$baseURL);
 
     $order = $os->getOrderById($orderId);
     
@@ -214,6 +219,105 @@ function wrg_showAdminOrderUpdatePage() {
         $shippingInfo = $order->shippingInfo;
         $newStatusId = $_REQUEST["status_id"];
         $deliveryNumber = $_REQUEST["delivery_number"];
+        
+        if (!empty($newStatusId)) {
+            // do update
+            $os->updateStatus($orderId, $newStatusId);
+            $updateStatus="Changes Saved";
+        }
+        
+        if (!empty($deliveryNumber)) {
+            $os->updateDeliveryNumber($orderId, $deliveryNumber);
+            $updateStatus="Changes Saved";
+        }
+        
+        if ($updateStatus) {
+            header("location: ".$orderURL);
+            return;
+        }
+        
+        $statuses = $os->getAllStatus();
+        
+    ?>
+    <?php if(!empty($updateStatus)):?>
+    <div class="alert"><?=$updateStatus?></div>
+    <?php endif; ?>
+    <form class="well">
+        <input type="hidden" name="order_id" value="<?=$order->id?>">
+        <label for="status_id">Status</label>
+        <select name="status_id" id="status_id">
+            <?php foreach($statuses as $status_id=>$description) { ?>
+            <option value="<?=$status_id?>" <?=$status_id==$order->statusId?"selected":''?>><?=$description?></option>
+            <?php } ?>
+        </select>
+        <label for="delivery_number">Airway Bill</label>
+        <input type="text" name="delivery_number" value="<?=(!empty($order->deliveryNumber)?$order->deliveryNumber:'')?>"></input>
+        <label></label>
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="<?=$baseURL?>" class="btn">Back to Order</a>
+    </form>
+    
+    
+    <?php
+    }
+    
+    $ret = ob_get_contents();
+    ob_end_clean();
+
+    return $ret;
+}
+
+function wrg_orderSendMailTemplate($args=array()) {
+    $ret = 
+         "Mba Sofie,\n".
+         "\n".
+         "Nama:\n%shipping.name%\n".
+         "Telepon:\n%shipping.phone%\n".
+         "Alamat:\n%shipping.address%\n%shipping.city%\n".
+         "\n".
+         "Catatan:\n%shipping.additionalInfo%\n".
+         "\n".
+         "Pesanan:\n".
+         "%order.items%\n".
+         "\n".
+         "Thx,".
+         "Reni";
+    
+    if (!empty($args)) {
+        $ret = WarungUtils::generateTemplate($ret, $args);
+    }
+    
+    return $ret;
+}
+
+function wrg_showAdminOrderSendMailPage() {
+    ob_start();
+    
+    $orderId = $_REQUEST["order_id"];
+    
+    $os = new OrderService();
+    $wo = new WarungOptions();
+    $baseURL = $wo->getAdminPageURL();
+    $orderURL = add_query_arg("adm_page","order",$baseURL);
+
+    $order = $os->getOrderById($orderId);
+    
+    $updateStatus = "";
+    
+    if (isset($order->id)) {
+        
+        $shippingInfo = $order->shippingInfo;
+        
+        // get template
+        $mailTemplate = wrg_orderSendMailTemplate(array(
+                "shipping.name"=>$shippingInfo->name,
+                "shipping.phone"=>$shippingInfo->phone,
+                "shipping.address"=>$shippingInfo->address,
+                "shipping.city"=>$shippingInfo->city,
+                "shipping.additionalInfo"=>$shippingInfo->additionalInfo,
+                "order.items"=>WarungUtils::formatItems($order->items)
+            ));
+        
         
         if (!empty($newStatusId)) {
             // do update
@@ -238,24 +342,27 @@ function wrg_showAdminOrderUpdatePage() {
     <div class="alert"><?=$updateStatus?></div>
     <?php endif; ?>
     <form class="well">
-        <input type="hidden" name="page_id" value="<?=$wo->getAdminPageId()?>">
-        <input type="hidden" name="adm_page" value="order_update">
         <input type="hidden" name="order_id" value="<?=$order->id?>">
-        <label for id="status_id">Status</label>
-        <select name="status_id" id="status_id">
-            <?php foreach($statuses as $status_id=>$description) { ?>
-            <option value="<?=$status_id?>" <?=$status_id==$order->statusId?"selected":''?>><?=$description?></option>
-            <?php } ?>
-        </select>
-        <label for id="delivery_number">Airway Bill</label>
-        <input type="text" name="delivery_number" value="<?=(!empty($order->deliveryNumber)?$order->deliveryNumber:'')?>"></input>
+        
+        <label for="mail_to">To</label>
+        <input type="text" name="mail_to"/>
+        
+        <label for="mail_subject">Subject</label>
+        <input type="text" name="mail_subject"/>
+        
+        <label for="mail_message">Message</label>
+        <textarea name="mail_message" rows="10" class="span4"><?=$mailTemplate?></textarea>
+
         <label></label>
-        <button type="submit" class="btn btn-primary">Update</button>
-        <a href="<?=$baseURL?>" class="btn">Back to Order</a>
+        <a href="<?=$orderURL?>" class="btn">Back to Order</a>
+        <button type="submit" class="btn btn-primary">Send Mail</button>
+        
     </form>
     
     
     <?php
+    } else {
+        echo 'Invalid order id';
     }
     
     $ret = ob_get_contents();

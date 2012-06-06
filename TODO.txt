@@ -1,2 +1,3 @@
 create send email in new order
 create add order from sms 
+add shipping service in order email (add new status for sent order mail)
