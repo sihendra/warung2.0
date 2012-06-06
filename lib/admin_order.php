@@ -152,7 +152,7 @@ function wrg_showAdminOrderPage() {
                 <?php endif;?>
                 <td>
                     <?php if($order->statusId == 1): ?>
-                    <a href="<?=$sendMailURL?>" title="Send Mail" class="btn btn-small">Send email</a>
+                    <a href="<?=$sendMailURL?>" title="Send Mail" class="btn btn-small">Email</a>
                     <?php endif;?>
                     <a href="<?=$editURL?>" title="Edit Status" class="btn btn-small">Status</a>
 		    <a href="<?=$logURL?>" title="Log Status" class="btn btn-small">Log</a>
@@ -254,7 +254,7 @@ function wrg_showAdminOrderUpdatePage() {
         <input type="text" name="delivery_number" value="<?=(!empty($order->deliveryNumber)?$order->deliveryNumber:'')?>"></input>
         <label></label>
         <button type="submit" class="btn btn-primary">Update</button>
-        <a href="<?=$baseURL?>" class="btn">Back to Order</a>
+        <a href="<?=$orderURL?>" class="btn">Back to Order</a>
     </form>
     
     
@@ -404,7 +404,7 @@ function wrg_showAdminOrderSendMailPage() {
         <input type="text" name="mail_subject"/>
         
         <label for="mail_message">Message</label>
-        <textarea name="mail_message" rows="10" class="span4"><?=$mailTemplate?></textarea>
+        <textarea id="mail_message" name="mail_message" rows="10" class="span4"><?=$mailTemplate?></textarea>
 
         <label></label>
         <a href="<?=$orderURL?>" class="btn">Back to Order</a>
@@ -425,6 +425,8 @@ function wrg_showAdminOrderSendMailPage() {
                             mail_message: "required"
                         }
             });
+            
+            $("#mail_message").redactor();
         });
     </script>
             <?php
