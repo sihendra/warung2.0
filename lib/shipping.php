@@ -165,7 +165,17 @@ abstract class AbstractShippingService implements IShippingService2 {
         return $result;     
     }
     
-    public static function getCheapestPrice($origin, $destination, $weight) {
+    /**
+     * Get cheapest price from all shipping service
+     * The cheapest shipping service will be saved in the $shippingService parameter (by ref)
+     * 
+     * @param type $origin
+     * @param type $destination
+     * @param type $weight
+     * @param type $shippingService the cheapest shipping service array with key "id" and "name"
+     * @return int 
+     */
+    public static function getCheapestPrice($origin, $destination, $weight, &$shippingService=array()) {
         $services = self::getAllServices();
         $minPrice = -1;
         foreach($services as $service) {
@@ -179,7 +189,16 @@ abstract class AbstractShippingService implements IShippingService2 {
             if ($price != NULL && $price >= 0) {
                 if ($minPrice == -1) {
                     $minPrice = $price;
+                    
+                    // set shipping info
+                    $shippingService["id"] = $s->getServiceId();
+                    $shippingService["name"] = $s->getServiceName();
                 } else {
+                    // min price found, set shipping info
+                    if ($price < $minPrice) {
+                        $shippingService["id"] = $s->getServiceId();
+                        $shippingService["name"] = $s->getServiceName();
+                    }
                     $minPrice = min(array($minPrice, $price));
                 }
             }

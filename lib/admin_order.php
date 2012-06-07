@@ -119,32 +119,45 @@ function wrg_showAdminOrderPage() {
             <tr class="show-info">
                 <td><?=($order->requireAttention?'<span class="label label-warning">Check</span> ':'')?>
                     <?php if($orderStatus == OrderService::$STATUS_NEW):?>
-                    <?=WarungUtils::relativeTime($order->dtcreated)?>
-                    <div class="info hide"><dl><dt>Time</dt><dd><?=strftime('%H:%M',strtotime($order->dtcreated));?></dd></dl></div>
+                    <p class="info-less"><?=WarungUtils::relativeTime($order->dtcreated)?></p>
+                    <div class="info hide"><dl><dt>Time</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtcreated));?></dd></dl></div>
                     <?php else:?>
-                    <?=WarungUtils::relativeTime($order->dtstatus)?>
-                    <div class="info hide"><dl><dt>Time</dt><dd><?=strftime('%H:%M',strtotime($order->dtstatus));?></dd></dl></div>
+                    <p class="info-less"><?=WarungUtils::relativeTime($order->dtstatus)?></p>
+                    <div class="info hide"><dl><dt>Time</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtstatus));?></dd></dl></div>
                     <?php endif;?>
                 </td>
                 <td>
-                    <?=$shippingInfo->name?>
+                    <p class="info-less"><?=$shippingInfo->name?></p>
                     <dl class="info hide">
+                        <dt>Name</dt><dd><?=$shippingInfo->name?></dd>
                         <dt>Phone</dt><dd><?=$shippingInfo->phone?></dd>
                         <dt>Items</dt><dd><?=WarungUtils::formatItems($order->items,"unstyled")?></dd>
-                        <dt>Total</dt><dd><?=WarungUtils::formatCurrency($order->totalPrice)?></dd>
+                        <dt>Price</dt><dd><?=WarungUtils::formatCurrency($order->totalPrice)?></dd>
+                        <dt>Shipping Price</dt><dd><?=WarungUtils::formatCurrency($order->shippingPrice)?></dd>
+                        <dt>Total Price</dt><dd><?=WarungUtils::formatCurrency($order->totalPrice + $order->shippingPrice)?></dd>
+                        <dt>Shipping Services</dt><dd><?=$order->shippingServices?></dd>
                     </dl>
                 </td>
                 <td>
-                    <?=ucwords($shippingInfo->city)?>
+                    <p class="info-less"><?=ucwords($shippingInfo->city)?></p>
                     <div class="info hide">
                         <dl>
                             <dt>Alamat</dt>
-                            <dd><address><?=  str_replace("\n", "<br/>", $shippingInfo->address)?></address></dd>
+                            <dd>
+                                <address>
+                                <?=str_replace("\n", "<br/>", $shippingInfo->address)?><br/><?=ucwords($shippingInfo->city)?>
+                                </address>
+                            </dd>
                         </dl>
                     </div>
                 </td>
                 <?php if($orderStatus == OrderService::$STATUS_SENT) {?> 
-                <td><?=$order->deliveryNumber?></td>
+                <td>
+                    <p class="info-less"><?=$order->deliveryNumber?></p>
+                    <div class="info hide">
+                    <dl><dt>Delivery Number</dt><dd><?=$order->deliveryNumber?></dd></dl>
+                    </div>
+                </td>
                 <?php } ?>
                 
                 <?php if(!empty($orderSearch)) :?> 
@@ -180,8 +193,15 @@ function wrg_showAdminOrderPage() {
             $("tr.show-info").click(function(e) {
                 
                 // prevent event bubbling
-                if ($(e.target).is("td") || $(e.target).is("dd") || $(e.target).is("dt") || $(e.target).is("address")|| $(e.target).is("li")) {
+                if ($(e.target).is("td") || $(e.target).is("dd") || 
+                    $(e.target).is("dt") || $(e.target).is("address")|| 
+                    $(e.target).is("li") || $(e.target).is("p")) {
+                    
                     $(this).find(".info").each(function(i,val){
+                        $(val).toggle();
+                    });
+                    
+                    $(this).find(".info-less").each(function(i,val){
                         $(val).toggle();
                     });
                 }
@@ -494,8 +514,9 @@ function wrg_showAdminOrderAddPage() {
     // url
     $coURL = $wo->getCheckoutURL();
     $baseURL = $wo->getAdminPageURL();
-    $saveURL = add_query_arg(array("wrg_action"=>"confirm"), $baseURL);
-    $orderURL = add_query_arg(array("wrg_action"=>"pay"), $coURL);
+    $orderURL = add_query_arg("adm_page","order",$baseURL);
+    $saveURL = add_query_arg(array("wrg_action"=>"confirm"), $coURL);
+    $createOrderURL = add_query_arg(array("wrg_action"=>"pay"), $coURL);
 
     
     $addStatus = "";
@@ -552,7 +573,7 @@ function wrg_showAdminOrderAddPage() {
 
         <div class="form-actions">
             <input type="submit" name="scheckout" class="btn" value="Calculate Ongkir">
-            <a href="<?=$orderURL?>" class="btn btn-primary create-order">Create Order</a>
+            <a href="<?=$createOrderURL?>" class="btn btn-primary create-order">Create Order</a>
         </div>
 
     </form>
@@ -654,7 +675,7 @@ function wrg_showAdminOrderAddPage() {
                 var theURL = $(this).attr("href");
                 
                 $.get(theURL, function(data){
-                    window.location.href = "<?=$baseURL?>";
+                    window.location.href = "<?=$orderURL?>";
                 });
             });
         });
@@ -732,7 +753,6 @@ function wrg_htmlGetCart() {
     }
     
     $cartSum = $kasir->getSummary($cartEntry, $user, $destination);
-    
     
     if (!empty($cartEntry)): ?>
     <form method="POST" action="<?= $updateQttURL ?>" id="cart-form">

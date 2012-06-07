@@ -43,28 +43,19 @@ class WarungKasir2 implements IKasir2 {
         // group by shipping
         $bags = $this->getTotalWeightByShipping($items);
         
-//        error_log("user:".var_export($user,true));
-//        error_log("destination:".var_export($destination,true));
-//        error_log("bags:".var_export($bags,true));
         
         // count total shipping price
         if (!empty ($bags)) {
-            $shippingErrors = array();
-            $summary["shipping"]=$this->getTotalShipping($bags, $destination, $shippingErrors);
-            
-            if (!empty($shippingErrors)) {
-                $summary["shipping.error"] = $shippingErrors;
-            }
-                
+            // this line will set: 
+            // $summary["shipping"], 
+            // $summary["shipping.services"], 
+            // $summary["shipping.error"]
+            $this->getTotalShipping($bags, $destination, $summary);
         }
-        
-//        if (sizeof($bags) == 1) {
-//            $summary["shipping.name"] = key($bags);
-//        }
         
         // calculate all
         $this->countGrandTotalPrice(&$summary);
-        
+
         return $summary;
         
     }
@@ -161,7 +152,7 @@ class WarungKasir2 implements IKasir2 {
         
     }
     
-    public function getTotalShipping($bags, $destination, &$errors=array()) {
+    public function getTotalShipping($bags, $destination, &$summary) {
         if (empty($bags) || ! is_array($bags)) {
             return 0;
         }
@@ -169,8 +160,14 @@ class WarungKasir2 implements IKasir2 {
         if (empty($destination)) {
             return 0;
         }
-
+        
+        if ($summary == null) {
+            return 0;
+        }
+        
         $totalShippingPrice = 0;
+        $errors = array();
+        $shippingServices = array();
         
         foreach ($bags as $shipping => $info) {
             
@@ -189,7 +186,7 @@ class WarungKasir2 implements IKasir2 {
             
             // free shipping?
             if ($bagTotalWeight == 0) {
-                return 0;
+                break;
             }
             
             //rounding?
@@ -199,13 +196,13 @@ class WarungKasir2 implements IKasir2 {
             
             if($shipping=="__default") {
                 
-//                error_log("default");
-                
                 // find with default service
                 
                 $r = GenericShippingService::getDefaultService();
                 if ($r) {
                     $s = new GenericShippingService($r->id, $this->origin);
+                    // get service name
+                    $shippingServices[] = $s->getServiceName();
                     $sprice = $s->getPrice($destination, $bagTotalWeight);
                     if (!empty($sprice)) {
                         $totalShippingPrice += $sprice;
@@ -217,18 +214,16 @@ class WarungKasir2 implements IKasir2 {
                 }
                 
             } else if ($shipping == "__cheapest") {
-                $cheapestPrice = GenericShippingService::getCheapestPrice($this->origin, $destination, $bagTotalWeight);
-                
-//                error_log('cheapest price: '.$cheapestPrice);
+                $ss = array();
+                $cheapestPrice = GenericShippingService::getCheapestPrice($this->origin, $destination, $bagTotalWeight, $ss);
                 
                 if (!empty($cheapestPrice)) {
+                    $shippingServices[] = $ss["name"];
                     $totalShippingPrice += $cheapestPrice;
                 } else {
                     $errors[] = "Shipping not available for '".$destination."'"; 
                 }
             } else {
-                
-//                error_log("by id: ".$shipping);
                 
                 $r = GenericShippingService::getServiceById($shipping);
                 // TODO calculate min weight
@@ -239,6 +234,7 @@ class WarungKasir2 implements IKasir2 {
                 if ($r) {
                     // count 
                     $s = new GenericShippingService($r->id, $this->origin);
+                    $shippingServices[] = $s->getServiceName();
                     $sprice = $s->getPrice($destination, $bagTotalWeight);
                     if (!empty($sprice)) {
                         $totalShippingPrice += $sprice;
@@ -251,6 +247,18 @@ class WarungKasir2 implements IKasir2 {
             }
             
         } // e.loop
+        
+        $summary["shipping"] = $totalShippingPrice;
+        
+        // set used shipping services
+        if (!empty($shippingServices)) {
+            $summary["shipping.services"] = implode(",", $shippingServices);
+        }
+        
+        //set error if any
+        if (!empty($errors)) {
+            $summary["shipping.error"] = $errors;
+        }
         
         return $totalShippingPrice;
     }

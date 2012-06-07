@@ -106,6 +106,7 @@ function wrg_install() {
         `shipping_price` int(11) NOT NULL,
         `delivery_number` varchar(100) DEFAULT NULL,
         `total_weight` float NOT NULL,
+        `shipping_services` varchar(50),
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB;";
     
@@ -130,8 +131,8 @@ function wrg_install() {
             `order_id` int(11) NOT NULL,
             `name` varchar(100) NOT NULL,
             `email` varchar(100) NOT NULL,
-            `mobile_phone` int(11) DEFAULT NULL,
-            `phone` int(11) DEFAULT NULL,
+            `mobile_phone` varchar(31) DEFAULT NULL,
+            `phone` varchar(31) DEFAULT NULL,
             `address` varchar(200) DEFAULT NULL,
             `city` varchar(100) DEFAULT NULL,
             `state` varchar(100) DEFAULT NULL,

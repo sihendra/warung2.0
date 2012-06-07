@@ -172,17 +172,17 @@ class OrderService implements IOrderService {
         
         global $wpdb;
         
-
         if (isset($order->totalPrice) ) {
 
             $sql = $wpdb->prepare("
-                    INSERT INTO $this->orderTable (status_id, dtstatus, total_price, shipping_price, delivery_number, total_weight)
-                    VALUES (%s, NOW(), %d, %d, %s, %f)",
+                    INSERT INTO $this->orderTable (status_id, dtstatus, total_price, shipping_price, delivery_number, total_weight, shipping_services)
+                    VALUES (%s, NOW(), %d, %d, %s, %f, %s)",
                     $order->statusId,
                     $order->totalPrice,
                     $order->shippingPrice,
                     $order->deliveryNumber,
-                    $order->shippingWeight
+                    $order->shippingWeight,
+                    $order->shippingServices
                     );
 
             if (($ret = $wpdb->query($sql)) > 0) {
@@ -306,7 +306,7 @@ class OrderService implements IOrderService {
 
         $ret = false;
 
-        $sql = $wpdb->prepare("SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number
+        $sql = $wpdb->prepare("SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services
                   FROM $this->orderTable
                  WHERE id = %d", $orderId);
 
@@ -325,6 +325,7 @@ class OrderService implements IOrderService {
                 $order->totalPrice = $row->total_price;
                 $order->shippingPrice = $row->shipping_price;
                 $order->deliveryNumber = $row->delivery_number;
+                $order->shippingServices = $row->shipping_services;
 
                 // get shipping/buyer info
                 $sql = $wpdb->prepare(
@@ -407,7 +408,7 @@ class OrderService implements IOrderService {
         }
 
         $sql = $wpdb->prepare(
-                "SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, 
+                "SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services,
                         IF( (status_id <> 1 AND dtstatus <= DATE_ADD(CURRENT_DATE, INTERVAL-3 DAY)) OR status_id = 1,1,0) AS attn
                   FROM $this->orderTable
                  WHERE status_id = %d
@@ -415,7 +416,7 @@ class OrderService implements IOrderService {
 
         if ($showNotificationEntries) {
             $sql = $wpdb->prepare(
-                "SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, 
+                "SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services,
                         IF( (status_id <> 1 AND dtstatus <= DATE_ADD(CURRENT_DATE, INTERVAL-3 DAY)) OR status_id = 1,1,0) AS attn
                   FROM $this->orderTable
                  WHERE (status_id = %d AND dtstatus <= DATE_ADD(CURRENT_DATE, INTERVAL-3 DAY)) OR (%d = 1 AND status_id = 1)
@@ -439,10 +440,8 @@ class OrderService implements IOrderService {
                 $order->shippingPrice = $row->shipping_price;
                 $order->deliveryNumber = $row->delivery_number;
                 $order->requireAttention = $row->attn;
+                $order->shippingServices = $row->shipping_services;
                 
-                // flag old status
-                if ($order )
-
                 // get shipping/buyer info
                 $sql = $wpdb->prepare(
                         "SELECT name, email, mobile_phone, phone, address, city, state, country, additional_info
@@ -532,7 +531,8 @@ class OrderService implements IOrderService {
         }
         
         $sql = $wpdb->prepare(
-                "SELECT o.id, o.dtcreated, o.status_id, o.dtstatus, o.total_price, o.shipping_price, o.delivery_number, st.description AS status_name,
+                "SELECT o.id, o.dtcreated, o.status_id, o.dtstatus, o.total_price, o.shipping_price, o.delivery_number, o.shipping_services,
+                        st.description AS status_name,
                         s.name, s.email, s.mobile_phone, s.phone, s.address, s.city, s.state, s.country, s.additional_info
                   FROM $this->orderTable o JOIN $this->orderShippingTable s ON o.id = s.order_id JOIN $this->orderStatusTable st ON st.id = o.status_id
                  WHERE s.name LIKE %s OR s.mobile_phone LIKE %s OR s.city LIKE %s
@@ -555,6 +555,7 @@ class OrderService implements IOrderService {
                 $order->shippingPrice = $row->shipping_price;
                 $order->deliveryNumber = $row->delivery_number;
                 $order->statusName = $row->status_name;
+                $order->shippingServices = $row->shipping_services;
 
                 // get shipping/buyer info
                 $i = (object) array(

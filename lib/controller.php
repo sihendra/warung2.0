@@ -214,8 +214,6 @@ function wrg_showDetailedCart($showUpdateForm = true) {
         $destination = $userInfo->city;
     }
 
-//    error_log($destination);
-    
     $cartEntry = $cart->getItems();
     $cartSum = $kasir->getSummary($cartEntry, $user, $destination);
     
@@ -577,10 +575,10 @@ function wrg_showOrderComplete() {
     $order->shippingWeight = $cartSum["totalWeight"];
     $order->shippingPrice = $cartSum["shipping"];
     $order->statusId = OrderService::$STATUS_NEW;
+    $order->shippingServices = $cartSum["shipping.services"];
 
     $orderService = new OrderService();
     $order_id = $orderService->putOrder($order);
-
 
     if ($order_id !== FALSE) {
         $orderOK = TRUE;

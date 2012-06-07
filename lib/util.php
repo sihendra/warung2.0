@@ -325,9 +325,9 @@ class WarungUtils {
         
         foreach($array as $el) {
             if (empty($itemSeparator)) {
-                $ret .= "<li>".$el->name." [".$el->quantity."]</li>";
+                $ret .= "<li>".$el->name." [x".$el->quantity."]</li>";
             } else {
-                $ret .= $el->name." [".$el->quantity."]".$itemSeparator;
+                $ret .= $el->name." [x".$el->quantity."]".$itemSeparator;
             }
         }
         
