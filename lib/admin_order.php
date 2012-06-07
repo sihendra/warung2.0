@@ -120,10 +120,10 @@ function wrg_showAdminOrderPage() {
                 <td><?=($order->requireAttention?'<span class="label label-warning">Check</span> ':'')?>
                     <?php if($orderStatus == OrderService::$STATUS_NEW):?>
                     <?=WarungUtils::relativeTime($order->dtcreated)?>
-                    <div class="info hide"><dl><dt>Time</dt><dd><?=$order->dtcreated?></dd></dl></div>
+                    <div class="info hide"><dl><dt>Time</dt><dd><?=strftime('%H:%M',strtotime($order->dtcreated));?></dd></dl></div>
                     <?php else:?>
                     <?=WarungUtils::relativeTime($order->dtstatus)?>
-                    <div class="info hide"><dl><dt>Time</dt><dd><?=$order->dtstatus?></dd></dl></div>
+                    <div class="info hide"><dl><dt>Time</dt><dd><?=strftime('%H:%M',strtotime($order->dtstatus));?></dd></dl></div>
                     <?php endif;?>
                 </td>
                 <td>
@@ -151,11 +151,11 @@ function wrg_showAdminOrderPage() {
                 <td><?=$order->statusName?></td>
                 <?php endif;?>
                 <td>
+                    <a href="<?=$editURL?>" title="Edit Status" class="btn btn-small">Status</a>
+		    <a href="<?=$logURL?>" title="Log Status" class="btn btn-small">Log</a>
                     <?php if($order->statusId == 1): ?>
                     <a href="<?=$sendMailURL?>" title="Send Mail" class="btn btn-small">Email</a>
                     <?php endif;?>
-                    <a href="<?=$editURL?>" title="Edit Status" class="btn btn-small">Status</a>
-		    <a href="<?=$logURL?>" title="Log Status" class="btn btn-small">Log</a>
                 </td>
             </tr>
             <? } ?>
@@ -209,10 +209,12 @@ function wrg_showAdminOrderUpdatePage() {
     $wo = new WarungOptions();
     $baseURL = $wo->getAdminPageURL();
     $orderURL = add_query_arg("adm_page","order",$baseURL);
+    $orderUpdateURL = add_query_arg(array("adm_page"=>"order_update","order_id"=>$orderId),$baseURL);
 
     $order = $os->getOrderById($orderId);
     
-    $updateStatus = "";
+    $result = "";
+    $error = "";
     
     if (isset($order->id)) {
         
@@ -223,26 +225,20 @@ function wrg_showAdminOrderUpdatePage() {
         if (!empty($newStatusId)) {
             // do update
             $os->updateStatus($orderId, $newStatusId);
-            $updateStatus="Changes Saved";
+            $result = "Changes Saved";
         }
         
         if (!empty($deliveryNumber)) {
             $os->updateDeliveryNumber($orderId, $deliveryNumber);
-            $updateStatus="Changes Saved";
+            $result="Changes Saved";
         }
         
-        if ($updateStatus) {
-            header("location: ".$orderURL);
-            return;
-        }
+        if (empty($result)) {
         
-        $statuses = $os->getAllStatus();
+            $statuses = $os->getAllStatus();
         
     ?>
-    <?php if(!empty($updateStatus)):?>
-    <div class="alert"><?=$updateStatus?></div>
-    <?php endif; ?>
-    <form class="well">
+    <form class="well" method="POST" action="<?=$orderUpdateURL?>">
         <input type="hidden" name="order_id" value="<?=$order->id?>">
         <label for="status_id">Status</label>
         <select name="status_id" id="status_id">
@@ -253,12 +249,21 @@ function wrg_showAdminOrderUpdatePage() {
         <label for="delivery_number">Airway Bill</label>
         <input type="text" name="delivery_number" value="<?=(!empty($order->deliveryNumber)?$order->deliveryNumber:'')?>"></input>
         <label></label>
-        <button type="submit" class="btn btn-primary">Update</button>
         <a href="<?=$orderURL?>" class="btn">Back to Order</a>
+        <button type="submit" class="btn btn-primary">Update</button>
     </form>
     
     
     <?php
+        }
+    } else {
+        $error = "Invalid order Id";
+    }
+    
+    if (!empty($error)) {
+        echo '<div class="alert alert-error"><a class="close" href="'.$orderUpdateURL.'">×</a>'.$error.'</div>';
+    } else if (!empty($result)) {
+        echo '<div class="alert alert-success"><a class="close" href="'.$orderURL.'">×</a>'.$result.'</div>';
     }
     
     $ret = ob_get_contents();
