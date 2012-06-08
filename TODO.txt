@@ -1,4 +1,4 @@
-create copy order						[]
+
 create add order from sms 				[]
 save reseller data in db				[]
 
@@ -16,3 +16,4 @@ save reseller data in db				[]
 create send email in new order 			[v]
 add shipping service in order email 	[v]
 (add new status for sent order mail)
+create copy order						[v]

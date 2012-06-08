@@ -11,6 +11,8 @@ interface IOrderService {
      * @return int|false if error will return false
      */
     function putOrder($order);
+    
+    function copyOrder($orderId);
 
     /**
      * Update order
@@ -243,6 +245,28 @@ class OrderService implements IOrderService {
 
         } else {
 //            error_log('invalid order data');
+        }
+
+        return $ret;
+        
+    }
+    
+    public function copyOrder($orderId) {
+        $ret = false;
+        
+        global $wpdb;
+        
+        if (!empty($orderId) ) {
+            $oldOrder = $this->getOrderById($orderId);
+            
+            if ($oldOrder) {
+                // do copy
+                $ret = $this->putOrder($oldOrder);
+            } else {
+                // not found
+            }
+        } else {
+            // not found
         }
 
         return $ret;

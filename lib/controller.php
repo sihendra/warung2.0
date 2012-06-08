@@ -716,6 +716,8 @@ function wrg_showAdminPage($content) {
                 echo wrg_showAdminOrderAddPage();
             else if ($thePage == "order_send_mail") 
                 echo wrg_showAdminOrderSendMailPage();
+            else if ($thePage == "order_copy") 
+                echo wrg_showAdminOrderCopyPage();
             else if ($thePage == "product_search") 
                 echo wrg_jsonProducts();
             else if ($thePage == "city_search") 

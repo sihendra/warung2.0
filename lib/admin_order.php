@@ -120,10 +120,15 @@ function wrg_showAdminOrderPage() {
                 <td><?=($order->requireAttention?'<span class="label label-warning">Check</span> ':'')?>
                     <?php if($orderStatus == OrderService::$STATUS_NEW):?>
                     <p class="info-less"><?=WarungUtils::relativeTime($order->dtcreated)?></p>
-                    <div class="info hide"><dl><dt>Time</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtcreated));?></dd></dl></div>
+                    <div class="info hide"><dl><dt>Create Date</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtcreated));?></dd></dl></div>
                     <?php else:?>
                     <p class="info-less"><?=WarungUtils::relativeTime($order->dtstatus)?></p>
-                    <div class="info hide"><dl><dt>Time</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtstatus));?></dd></dl></div>
+                    <div class="info hide">
+                        <dl>
+                            <dt>Create Date</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtcreated));?></dd>
+                            <dt>Status Date</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtstatus));?></dd>
+                        </dl>
+                    </div>
                     <?php endif;?>
                 </td>
                 <td>
@@ -498,6 +503,52 @@ function wrg_showAdminOrderLogPage() {
         </ol>
     
     <?php
+    }
+    
+    $ret = ob_get_contents();
+    ob_end_clean();
+
+    return $ret;
+}
+
+function wrg_showAdminOrderCopyPage() {
+    ob_start();
+    
+    // param
+    $orderId = $_REQUEST["order_id"];
+    
+    // response
+    $result = "";
+    $error = "";
+    
+    // mandatory vars
+    $os = new OrderService();
+    $wo = new WarungOptions();
+    $baseURL = $wo->getAdminPageURL();
+    $orderURL = add_query_arg("adm_page","order",$baseURL);
+
+    // do copy
+    if ($orderId) {
+        
+        $newOrderId = $os->copyOrder($orderId);
+
+        if ($newOrderId) {
+            // copy success
+            $result = "Succes copying order with Id: ".$orderId. " to new order with Id: " . $newOrderId;
+        } else {
+            // copy failed
+            $error = "Failed to copy order with id: ".$orderId;
+        }
+    } else {
+        // invalid order id
+        
+        $error = "Invalid or missing order_id";
+    }
+    
+    if (!empty($error)) {
+        echo '<div class="alert alert-error"><a class="close" href="'.$orderURL.'">×</a>'.$error.'</div>';
+    } else if (!empty($result)) {
+        echo '<div class="alert alert-success"><a class="close" href="'.$orderURL.'">×</a>'.$result.'</div>';
     }
     
     $ret = ob_get_contents();
