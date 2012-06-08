@@ -104,7 +104,11 @@ class WarungKasir2 implements IKasir2 {
     
     // reseller
     private function isReseller($user) {
-        return $user === 'hendra';
+        if (preg_match("/(08883849179)|(081347787961)|(08176828627)|(085781234801)|(085250910787)|(085753359778)/i",$user->phone)) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     // ### Seperate Shipping

@@ -24,8 +24,9 @@ class WarungCartWidget extends WP_Widget {
         $user = new WarungUser2();
         $cart = new WarungCart2();
         $kasir = new WarungKasir2();
+        $userInfo = $kasir->getSavedUserInfo();
         
-        $cartSummary = $kasir->getSummary($cart->getItems(), $user->getUserName(), $user->getShippingDestination);
+        $cartSummary = $kasir->getSummary($cart->getItems(), $userInfo, $userInfo->city);
         
         extract($args);
         // e.get cart info

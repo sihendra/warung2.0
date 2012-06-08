@@ -752,7 +752,7 @@ function wrg_htmlGetCart() {
         $destination = $userInfo->city;
     }
     
-    $cartSum = $kasir->getSummary($cartEntry, $user, $destination);
+    $cartSum = $kasir->getSummary($cartEntry, $userInfo, $destination);
     
     if (!empty($cartEntry)): ?>
     <form method="POST" action="<?= $updateQttURL ?>" id="cart-form">

@@ -215,7 +215,7 @@ function wrg_showDetailedCart($showUpdateForm = true) {
     }
 
     $cartEntry = $cart->getItems();
-    $cartSum = $kasir->getSummary($cartEntry, $user, $destination);
+    $cartSum = $kasir->getSummary($cartEntry, $userInfo, $destination);
     
     ?>
     <div class="wcart_detailed_cart_container">
@@ -564,7 +564,7 @@ function wrg_showOrderComplete() {
         
     
     $userInfo = $kasir->getSavedUserInfo();
-    $cartSum = $kasir->getSummary($cart->getItems(), $userInfo->name, $userInfo->city);
+    $cartSum = $kasir->getSummary($cart->getItems(), $userInfo, $userInfo->city);
 
     // save order
     $order = (object)array();
