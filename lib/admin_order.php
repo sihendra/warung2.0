@@ -114,7 +114,8 @@ function wrg_showAdminOrderPage() {
                 $shippingInfo = $order->shippingInfo;
                 $editURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_update"), $adminURL);
                 $logURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_status_log"), $adminURL);
-                $sendMailURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_send_mail"), $adminURL);
+                $sendMailURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_send_mail","template"=>"order_new"), $adminURL);
+                $sendMailSentURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_send_mail","template"=>"order_sent"), $adminURL);
             ?>
             <tr class="show-info">
                 <td><?=($order->requireAttention?'<span class="label label-warning">Check</span> ':'')?>
@@ -173,6 +174,9 @@ function wrg_showAdminOrderPage() {
 		    <a href="<?=$logURL?>" title="Log Status" class="btn btn-small">Log</a>
                     <?php if($order->statusId == 1): ?>
                     <a href="<?=$sendMailURL?>" title="Send Mail" class="btn btn-small">Email</a>
+                    <?php endif;?>
+                    <?php if($order->statusId == 4): ?>
+                    <a href="<?=$sendMailSentURL?>" title="Send Mail" class="btn btn-small">Email</a>
                     <?php endif;?>
                 </td>
             </tr>
@@ -297,7 +301,7 @@ function wrg_showAdminOrderUpdatePage() {
     return $ret;
 }
 
-function wrg_orderSendMailTemplate($args=array()) {
+function wrg_orderNewMailTemplate($args=array()) {
     ob_start();
     $ret = "";
     
@@ -368,12 +372,52 @@ function wrg_orderSendMailTemplate($args=array()) {
     return $ret;
 }
 
+function wrg_orderSentMailTemplate($args=array()) {
+    ob_start();
+    $ret = "";
+    
+    ?>
+         <div>
+            <p>Bpk/Ibu %shipping.name%,</p>
+
+            <p>Pesanan sudah kami kirim dengan nomor resi berikut <b>%order.delivery_number%</b>
+         
+            <p>Untuk tracing/tracking paket bisa dicek di web berikut:</p>    
+            <ul>
+                <li><a href="http://jne.co.id/">JNE</a></li>
+                <li><a href="http://tiki-online.com/tracking/track_single">TIKI</a></li>
+                <li><a href="http://www.pandulogistics.com/etools.asp?submenu=Tracing">Pandusiwi</a></li>
+                <li><a href="http://www.posindonesia.co.id/">Pos Indonesia</a></li>
+            </ul>
+                
+            <p>
+                Thx,<br/>
+                Reni
+            </p>
+         </div>
+    
+    <?php
+    
+    $ret = ob_get_contents();
+    ob_end_clean();
+    
+    if (!empty($args)) {
+        $ret = WarungUtils::generateTemplate($ret, $args);
+    }
+    
+    return $ret;
+}
+
 function wrg_showAdminOrderSendMailPage() {
     ob_start();
     
     // param
     $orderId = $_REQUEST["order_id"];
     $doSendMail = $_REQUEST["do_sendmail"];
+    $template = $_REQUEST["template"];
+    if (empty($template)) {
+        $template = "order_new";
+    }
     
     $wo = new WarungOptions();
     $adminURL = $wo->getAdminPageURL();
@@ -410,11 +454,14 @@ function wrg_showAdminOrderSendMailPage() {
             }
         } else {
             // show send mailform
+            $mailTemplate = "";
             
-            // get mail template
-            $shippingInfo = $order->shippingInfo;
         
-            $mailTemplate = wrg_orderSendMailTemplate(array(
+            if ($template == "order_new") {
+                // default use new order template
+                $shippingInfo = $order->shippingInfo;
+                
+                $mailTemplate = wrg_orderNewMailTemplate(array(
                     "shipping.name"=>$shippingInfo->name,
                     "shipping.phone"=>$shippingInfo->phone,
                     "shipping.address"=>$shippingInfo->address,
@@ -422,22 +469,33 @@ function wrg_showAdminOrderSendMailPage() {
                     "shipping.additionalInfo"=>$shippingInfo->additionalInfo,
                     "order.items"=>WarungUtils::formatItems($order->items)
                 ));
+            } else if ($template == "order_sent") {
+                $shippingInfo = $order->shippingInfo;
+                $mailTemplate = wrg_orderSentMailTemplate(array(
+                    "shipping.name"=>ucwords($shippingInfo->name),
+                    "order.delivery_number"=>$order->deliveryNumber
+                ));
+                
+                $mail_to = $shippingInfo->email;
+                $mail_subject = "[Warungsprei.com] Pengiriman Pesanan #".$order->id;
+            }
             
             ?>
     <form id="send_mail_form" class="well" method="POST" action="<?=$sendMailURL?>">
         <input type="hidden" name="order_id" value="<?=$order->id?>">
+        <input type="hidden" name="template" value="<?=$template?>">
         
         <label for="mail_to">To</label>
-        <input type="text" name="mail_to"/>
+        <input type="text" name="mail_to" value="<?=$mail_to?>"/>
         
         <label for="mail_subject">Subject</label>
-        <input type="text" name="mail_subject"/>
+        <input type="text" name="mail_subject" value="<?=$mail_subject?>"/>
         
         <label for="mail_message">Message</label>
         <textarea id="mail_message" name="mail_message" rows="10" class="span4"><?=$mailTemplate?></textarea>
 
         <label></label>
-        <a href="<?=$orderURL?>" class="btn">Back to Order</a>
+        <a href="<?=$orderURL?>" class="btn back">Back to Order</a>
         <input type="submit" class="btn btn-primary" name="do_sendmail" value="Send Mail"/>
         
     </form>
@@ -454,6 +512,11 @@ function wrg_showAdminOrderSendMailPage() {
                             },
                             mail_message: "required"
                         }
+            });
+            
+            $('a.back').click(function(){
+		parent.history.back();
+		return false;
             });
             
             $("#mail_message").redactor();
