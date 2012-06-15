@@ -68,7 +68,7 @@ abstract class AbstractShippingService implements IShippingService2 {
         $sql = $wpdb->prepare(
                 "SELECT DISTINCT(destination) destination
                    FROM $tbl
-                ");
+                ORDER BY destination");
                 
         $result = $wpdb->get_results($sql);
         

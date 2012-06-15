@@ -143,7 +143,7 @@ function wrg_showShippingForm($showUpdateForm = true) {
                     <? endif; ?>
                 </div>
                 <div class="wCart_form_row">
-                    <label for="scity">Kota *</label>
+                    <label for="scity">Kota/Kec *</label>
                     <? if ($showUpdateForm) : ?>
                         <?= WarungUtils::htmlSelect('scity', 'scity', $cities, $city) ?>
                     <? else: ?>
