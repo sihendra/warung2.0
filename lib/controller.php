@@ -145,7 +145,7 @@ function wrg_showShippingForm($showUpdateForm = true) {
                 <div class="wCart_form_row">
                     <label for="scity">Kota/Kec *</label>
                     <? if ($showUpdateForm) : ?>
-                        <?= WarungUtils::htmlSelect('scity', 'scity', $cities, $city) ?>
+                        <?= WarungUtils::htmlSelect('scity', 'scity', $cities, $city,'','-- Pilih Kota --') ?>
                     <? else: ?>
                         <span><?= $userInfo->city ?></span>
                     <? endif; ?>
@@ -487,7 +487,7 @@ function wrg_showShippingSimPage($content) {
     }
     ?>
     <form action="<?=$simURL?>" method="POST">
-        <?= WarungUtils::htmlSelect('city', 'city', $cities, $destination) ?>
+        <?= WarungUtils::htmlSelect('city', 'city', $cities, $destination, '', '-- Pilih Kota --') ?>
         <input type="text" name="weight" value="<?=$weight?>"> Kg
         <input type="submit" value="Cek Ongkir" name="shipping_sim">
     </form>

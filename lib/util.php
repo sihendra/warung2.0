@@ -268,27 +268,39 @@ class WarungUtils {
         return array_keys($arr) !== range(0, count($arr) - 1);
     }
     
-    public static function htmlSelect($id, $name, $data, $selectedVal = null, $class = null) {
+    public static function htmlSelect($id, $name, $data, $selectedVal = null, $class = null, $noSelectionText=null) {
         $ret = '<select id="' . $id . '" name="' . $name . '"';
         if ($class) {
             $ret .= ' class="' . $class . '"';
         }
         $ret .= ">";
         if (self::isAssoc($data)) {
+            $i = 0;
             foreach ($data as $key => $val) {
+                if ($i == 0 && $noSelectionText) {
+                    $ret .= '<option value="">'.$noSelectionText.'</option>';
+                }
+                
                 if ($selectedVal != null && $key == $selectedVal) {
                     $ret .= '<option value="' . $key . '" selected="selected">' . $val . '</option>';
                 } else {
                     $ret .= '<option value="' . $key . '">' . $val . '</option>';
                 }
+                $i++;
             }
         } else {
+            $i=0;
             foreach ($data as $val) {
+                if ($i == 0 && $noSelectionText) {
+                    $ret .= '<option value="">'.$noSelectionText.'</option>';
+                }
+                
                 if ($selectedVal != null && $val == $selectedVal) {
                     $ret .= '<option value="' . $val . '" selected="selected">' . $val . '</option>';
                 } else {
                     $ret .= '<option value="' . $val . '">' . $val . '</option>';
                 }
+                $i++;
             }
         }
         $ret .= "</select>";
