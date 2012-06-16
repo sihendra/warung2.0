@@ -177,14 +177,15 @@ class OrderService implements IOrderService {
         if (isset($order->totalPrice) ) {
 
             $sql = $wpdb->prepare("
-                    INSERT INTO $this->orderTable (status_id, dtstatus, total_price, shipping_price, delivery_number, total_weight, shipping_services)
-                    VALUES (%s, NOW(), %d, %d, %s, %f, %s)",
+                    INSERT INTO $this->orderTable (status_id, dtstatus, total_price, shipping_price, delivery_number, total_weight, shipping_services, payment_method)
+                    VALUES (%s, NOW(), %d, %d, %s, %f, %s, %s)",
                     $order->statusId,
                     $order->totalPrice,
                     $order->shippingPrice,
                     $order->deliveryNumber,
                     $order->shippingWeight,
-                    $order->shippingServices
+                    $order->shippingServices,
+                    $order->paymentMethod
                     );
 
             if (($ret = $wpdb->query($sql)) > 0) {
@@ -197,8 +198,8 @@ class OrderService implements IOrderService {
                     $ts = $order->shippingInfo;
 
                     $sql = $wpdb->prepare("
-                        INSERT INTO $this->orderShippingTable (order_id, name, email, mobile_phone, phone, address, city, state, country, additional_info)
-                        VALUES (%d, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                        INSERT INTO $this->orderShippingTable (order_id, name, email, mobile_phone, phone, address, city, state, country, additional_info, postal_code)
+                        VALUES (%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d)",
                         $orderId,
                         $ts->name,
                         $ts->email,
@@ -208,7 +209,8 @@ class OrderService implements IOrderService {
                         $ts->city,
                         $ts->state,
                         $ts->country,
-                        $ts->additionalInfo
+                        $ts->additionalInfo,
+                        $ts->postalCode
                     );
 
                     $wpdb->query($sql);
@@ -330,7 +332,7 @@ class OrderService implements IOrderService {
 
         $ret = false;
 
-        $sql = $wpdb->prepare("SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services
+        $sql = $wpdb->prepare("SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services, payment_method
                   FROM $this->orderTable
                  WHERE id = %d", $orderId);
 
@@ -350,10 +352,11 @@ class OrderService implements IOrderService {
                 $order->shippingPrice = $row->shipping_price;
                 $order->deliveryNumber = $row->delivery_number;
                 $order->shippingServices = $row->shipping_services;
+                $order->paymentMethod = $row->payment_method;
 
                 // get shipping/buyer info
                 $sql = $wpdb->prepare(
-                        "SELECT name, email, mobile_phone, phone, address, city, state, country, additional_info
+                        "SELECT name, email, mobile_phone, phone, address, city, state, country, additional_info, postal_code
                           FROM $this->orderShippingTable
                         WHERE order_id=%d", $order->id);
 
@@ -371,7 +374,8 @@ class OrderService implements IOrderService {
                         "city" => $s->city, 
                         "country" => $s->country, 
                         "state" => $s->state,
-                        "additionalInfo" => $s->additional_info
+                        "additionalInfo" => $s->additional_info,
+                        "postalCode" => $s->postal_code
                     );
                     
                     $order->shippingInfo=$i;
@@ -432,7 +436,7 @@ class OrderService implements IOrderService {
         }
 
         $sql = $wpdb->prepare(
-                "SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services,
+                "SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services, payment_method, 
                         IF( (status_id <> 1 AND dtstatus <= DATE_ADD(CURRENT_DATE, INTERVAL-3 DAY)) OR status_id = 1,1,0) AS attn
                   FROM $this->orderTable
                  WHERE status_id = %d
@@ -440,7 +444,7 @@ class OrderService implements IOrderService {
 
         if ($showNotificationEntries) {
             $sql = $wpdb->prepare(
-                "SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services,
+                "SELECT id, dtcreated, status_id, dtstatus, total_price, shipping_price, delivery_number, shipping_services, payment_method, 
                         IF( (status_id <> 1 AND dtstatus <= DATE_ADD(CURRENT_DATE, INTERVAL-3 DAY)) OR status_id = 1,1,0) AS attn
                   FROM $this->orderTable
                  WHERE (status_id = %d AND dtstatus <= DATE_ADD(CURRENT_DATE, INTERVAL-3 DAY)) OR (%d = 1 AND status_id = 1)
@@ -465,10 +469,11 @@ class OrderService implements IOrderService {
                 $order->deliveryNumber = $row->delivery_number;
                 $order->requireAttention = $row->attn;
                 $order->shippingServices = $row->shipping_services;
+                $order->paymentMethod = $row->payment_method;
                 
                 // get shipping/buyer info
                 $sql = $wpdb->prepare(
-                        "SELECT name, email, mobile_phone, phone, address, city, state, country, additional_info
+                        "SELECT name, email, mobile_phone, phone, address, city, state, country, additional_info, postal_code
                           FROM $this->orderShippingTable
                         WHERE order_id=%d", $order->id);
 
@@ -486,7 +491,8 @@ class OrderService implements IOrderService {
                         "city" => $s->city, 
                         "country" => $s->country, 
                         "state" => $s->state,
-                        "additionalInfo" => $s->additional_info
+                        "additionalInfo" => $s->additional_info,
+                        "postalCode" => $s->postal_code
                     );
                     
                     $order->shippingInfo=$i;
@@ -555,9 +561,9 @@ class OrderService implements IOrderService {
         }
         
         $sql = $wpdb->prepare(
-                "SELECT o.id, o.dtcreated, o.status_id, o.dtstatus, o.total_price, o.shipping_price, o.delivery_number, o.shipping_services,
+                "SELECT o.id, o.dtcreated, o.status_id, o.dtstatus, o.total_price, o.shipping_price, o.delivery_number, o.shipping_services, o.payment_method,
                         st.description AS status_name,
-                        s.name, s.email, s.mobile_phone, s.phone, s.address, s.city, s.state, s.country, s.additional_info
+                        s.name, s.email, s.mobile_phone, s.phone, s.address, s.city, s.state, s.country, s.additional_info, s.postal_code
                   FROM $this->orderTable o JOIN $this->orderShippingTable s ON o.id = s.order_id JOIN $this->orderStatusTable st ON st.id = o.status_id
                  WHERE s.name LIKE %s OR s.mobile_phone LIKE %s OR s.city LIKE %s
                  ORDER BY $orderBy LIMIT %d,%d", $query,$query,$query, $offset, $showPerPage);
@@ -580,6 +586,7 @@ class OrderService implements IOrderService {
                 $order->deliveryNumber = $row->delivery_number;
                 $order->statusName = $row->status_name;
                 $order->shippingServices = $row->shipping_services;
+                $order->paymentMethod= $row->payment_method;
 
                 // get shipping/buyer info
                 $i = (object) array(
@@ -591,7 +598,8 @@ class OrderService implements IOrderService {
                     "city" => $row->city, 
                     "country" => $row->country, 
                     "state" => $row->state,
-                    "additionalInfo" => $row->additional_info
+                    "additionalInfo" => $row->additional_info,
+                    "postalCode" => $row->postalCode
                 );
 
                 $order->shippingInfo=$i;

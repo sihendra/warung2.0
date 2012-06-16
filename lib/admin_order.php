@@ -142,6 +142,7 @@ function wrg_showAdminOrderPage() {
                         <dt>Shipping Price</dt><dd><?=WarungUtils::formatCurrency($order->shippingPrice)?></dd>
                         <dt>Total Price</dt><dd><?=WarungUtils::formatCurrency($order->totalPrice + $order->shippingPrice)?></dd>
                         <dt>Shipping Services</dt><dd><?=$order->shippingServices?></dd>
+                        <dt>Payment Method</dt><dd><?=$order->paymentMethod?></dd>
                     </dl>
                 </td>
                 <td>
@@ -151,7 +152,8 @@ function wrg_showAdminOrderPage() {
                             <dt>Alamat</dt>
                             <dd>
                                 <address>
-                                <?=str_replace("\n", "<br/>", $shippingInfo->address)?><br/><?=ucwords($shippingInfo->city)?>
+                                <?=str_replace("\n", "<br/>", $shippingInfo->address)?>
+                                <br/><?=ucwords($shippingInfo->city)?> <?=ucwords($shippingInfo->postalCode)?>
                                 </address>
                             </dd>
                         </dl>

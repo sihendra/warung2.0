@@ -576,6 +576,7 @@ function wrg_showOrderComplete() {
     $order->shippingPrice = $cartSum["shipping"];
     $order->statusId = OrderService::$STATUS_NEW;
     $order->shippingServices = $cartSum["shipping.services"];
+    $order->paymentMethod = $userInfo->paymentMethod;
 
     $orderService = new OrderService();
     $order_id = $orderService->putOrder($order);
