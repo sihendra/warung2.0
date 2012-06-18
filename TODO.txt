@@ -1,6 +1,6 @@
-ongkir jne data							[]
-create add order from sms 				[]
-save reseller data in db				[]
+after action back to order should back to the right status 	[]
+add tracking url in deliv number (email & order page)		[]
+save reseller data in db									[]
 
 
 
@@ -17,3 +17,5 @@ create send email in new order 			[v]
 add shipping service in order email 	[v]
 (add new status for sent order mail)
 create copy order						[v]
+ongkir jne data							[v]
+create add order from sms 				[v]
