@@ -111,7 +111,17 @@ function wrg_install() {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB;";
     
-    
+    // order temp
+    $table_name = $wpdb->prefix . "wrg_order_temp";
+    $sql .=
+            "CREATE TABLE `$table_name`(  
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `dtcreated` DATETIME NOT NULL,
+            `text` VARCHAR(160) NOT NULL,
+            `is_parsed` TINYINT NOT NULL DEFAULT 0,
+            PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB;";
+
     // order items
     $table_name = $wpdb->prefix . "wrg_order_items";
     $sql .=

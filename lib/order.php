@@ -43,6 +43,7 @@ class OrderService implements IOrderService {
     private $orderShippingTable;
     private $orderStatusTable;
     private $orderStatusHistoryTable;
+    private $orderTempTable;
 
     // update statuses
     public static $STATUS_NEW = 1;
@@ -59,6 +60,7 @@ class OrderService implements IOrderService {
         $this->orderShippingTable = $wpdb->prefix . "wrg_order_shipping";
         $this->orderStatusTable = $wpdb->prefix."wrg_order_status";
         $this->orderStatusHistoryTable = $wpdb->prefix . "wrg_order_status_history";
+        $this->orderTempTable = $wpdb->prefix . "wrg_order_temp";
     }
 
     //put your code here
@@ -169,6 +171,8 @@ class OrderService implements IOrderService {
         return $ret;
     }
 
+    
+    
     public function putOrder($order) {
         $ret = false;
         
@@ -775,6 +779,96 @@ class OrderService implements IOrderService {
         return $wpdb->query($sql);
     }
 
+    // ---- temp order -------
+    public function putTempOrder($text) {
+        $ret = false;
+        
+        global $wpdb;
+        
+        if (!empty($text) && strlen($text) <= 160) {
+            $sql = $wpdb->prepare("
+                    INSERT INTO $this->orderTempTable (dtcreated, text)
+                    VALUES (NOW(), %s)",
+                    $text
+                    );
+
+            if (($ret = $wpdb->query($sql)) > 0) {
+                $ret = $wpdb->insert_id;
+            }
+        }
+        
+        return $ret;
+    }
+    
+    public function deleteTempOrder($id) {
+        $ret = false;
+        
+        global $wpdb;
+        
+        $sql = $wpdb->prepare("
+                    DELETE FROM $this->orderTempTable WHERE id = %d",
+                    $id
+                    );
+
+        $ret = $wpdb->query($sql);
+        
+        return $ret;
+    }
+    
+    public function updateTempOrder($id, $isParsed) {
+        $ret = false;
+        
+        global $wpdb;
+        
+        $sql = $wpdb->prepare("
+                    UPDATE $this->orderTempTable SET is_parsed = %d WHERE id = %d",
+                    $isParsed, $id
+                    );
+
+        $ret = $wpdb->query($sql);
+        
+        return $ret;
+    }
+    
+    public function getTempOrderById($id) {
+        global $wpdb;
+
+        $ret = false;
+
+        $sql = $wpdb->prepare("SELECT id, dtcreated, text, is_parsed
+                  FROM $this->orderTempTable
+                 WHERE id = %d", $id);
+
+        $result = $wpdb->get_results($sql);
+
+        if($result) {
+            // loop through result
+            foreach($result as $row) {
+                $ret = $row;
+                break;
+            }
+        }
+
+        return $ret;
+    }
+    
+    public function getTempOrders($isParsed = 0) {
+        global $wpdb;
+
+        $ret = false;
+
+        $sql = $wpdb->prepare("SELECT id, dtcreated, text, is_parsed
+                  FROM $this->orderTempTable
+                 WHERE is_parsed = %d ORDER BY id desc", $isParsed);
+
+        $result = $wpdb->get_results($sql);
+
+        if ($result) {
+            $ret = $result;
+        }
+
+        return $ret;
+    }
     
 }
 ?>

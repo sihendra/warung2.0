@@ -715,6 +715,8 @@ function wrg_showAdminPage($content) {
                 echo wrg_showAdminOrderLogPage();
             else if ($thePage == "order_add")
                 echo wrg_showAdminOrderAddPage();
+            else if ($thePage == "order_add_from_text")
+                echo wrg_showAdminOrderAddFromTextPage();
             else if ($thePage == "order_send_mail") 
                 echo wrg_showAdminOrderSendMailPage();
             else if ($thePage == "order_copy") 

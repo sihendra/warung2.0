@@ -806,6 +806,104 @@ function wrg_showAdminOrderAddPage() {
     return $ret;
 }
 
+function wrg_showAdminOrderAddFromTextPage() {
+    ob_start();
+    
+    // init
+    $wo = new WarungOptions();
+    $o = new OrderService();
+    $orders = $o->getTempOrders();
+    
+    // url
+    $baseURL = $wo->getAdminPageURL();
+    $orderURL = add_query_arg("adm_page","order",$baseURL);
+    $addTempOrderURL = add_query_arg("adm_page","order_add_from_text",$baseURL);
+    
+    // status
+    $actionStatus = "";
+    $error = "";
+    $backURL = $orderURL;
+    
+    // action
+    if ($_REQUEST["order_text"]) {
+        $ret = $o->putTempOrder($_REQUEST["order_text"]);
+        
+        if ($ret) {
+            $actionStatus = "Succes adding temp order";
+        } else {
+            $error = "Failed adding temp order";
+        }
+                
+    } else if ($_REQUEST["order_id"]) {
+        $ret = $o->deleteTempOrder($_REQUEST["order_id"]);
+        
+        if ($ret) {
+            $actionStatus = "Success delete temp order with id ". $_REQUEST["order_id"];
+        } else {
+            $error = "Failed delete temp order with id: ". $_REQUEST["order_id"];
+        }
+        
+        $backURL = $addTempOrderURL;
+    }
+    
+    ?>
+    <?php if(!empty($error)):?>
+    <div class="alert alert-error"><a href="<?=$backURL?>" class="close">x</a><?=$error?></div>
+    <?php elseif(!empty($actionStatus)): ?>
+    <div class="alert alert-success"><a href="<?=$backURL?>" class="close">x</a><?=$actionStatus?></div>
+    <?php else: ?>
+    <h3>Add Order from Text</h3>
+    <form id="add_temp_order_form" class="well" method="POST" action="<?=$addTempOrderURL?>">
+        <label for="order_text">Text</label>
+        <textarea id="order_text" name="order_text" rows="10" class="span4"></textarea>
+
+        <label></label>
+
+        <div class="form-actions">
+            <a href="<?=$orderURL?>" class="btn back">Back to Order</a>
+            <input type="submit" class="btn btn-primary" name="action" value="Save Order"/>
+        </div>
+        
+    </form>
+    
+    <!-- list unparsed order -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Text</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!empty($orders)): ?>
+            <?php foreach ($orders as $order) { 
+                $editURL = add_query_arg(array("order_id"=>$order->id), $addTempOrderURL);
+            ?>
+            <tr class="show-info">
+                <td>
+                    <p class="info-less"><?=WarungUtils::relativeTime($order->dtcreated)?></p>
+                </td>
+                <td>
+                    <p class="info-less"><?=$order->text?></p>
+                </td>
+                <td>
+                    <a href="<?=$editURL?>" title="Delete Order" class="btn btn-small">Delete</a>
+                </td>
+            </tr>
+            <? } ?>
+            <?php endif;?>
+        </tbody>
+    </table>       
+    
+    <?php endif;
+    
+    $ret = ob_get_contents();
+    ob_end_clean();
+
+    return $ret;
+}
+
 // ================== JSON =====================================
 
 function wrg_jsonProducts() {
