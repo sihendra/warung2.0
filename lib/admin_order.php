@@ -822,7 +822,7 @@ function wrg_showAdminOrderAddFromTextPage() {
     // status
     $actionStatus = "";
     $error = "";
-    $backURL = $orderURL;
+    $backURL = $addTempOrderURL;
     
     // action
     if ($_REQUEST["order_text"]) {
