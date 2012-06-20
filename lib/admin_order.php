@@ -29,6 +29,9 @@ function wrg_showAdminOrderPage() {
         $baseURL = add_query_arg("order_status", $orderStatus, $baseURL);
     }
     
+    $urlpart = parse_url($baseURL);
+    $backURL = $urlpart["path"] . "?" . $urlpart["query"];  
+    
     // view: tab states
     $activeTab = array ("1"=>"","2"=>"","3"=>"","4"=>"");
     $activeTab[$orderStatus] = 'class="active"';
@@ -112,10 +115,18 @@ function wrg_showAdminOrderPage() {
         <tbody>
             <?php foreach ($orderRows as $order) { 
                 $shippingInfo = $order->shippingInfo;
-                $editURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_update"), $adminURL);
+                $editURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_update","back"=>urlencode($backURL)), $adminURL);
                 $logURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_status_log"), $adminURL);
-                $sendMailURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_send_mail","template"=>"order_new"), $adminURL);
-                $sendMailSentURL = add_query_arg(array("order_id"=>$order->id,"adm_page"=>"order_send_mail","template"=>"order_sent"), $adminURL);
+                $sendMailURL = add_query_arg(array(
+                    "order_id"=>$order->id,
+                    "adm_page"=>"order_send_mail",
+                    "template"=>"order_new",
+                    "back"=>urlencode($backURL)), $adminURL);
+                $sendMailSentURL = add_query_arg(array(
+                    "order_id"=>$order->id,
+                    "adm_page"=>"order_send_mail",
+                    "template"=>"order_sent",
+                    "back"=>urlencode($backURL)), $adminURL);
             ?>
             <tr class="show-info">
                 <td><?=($order->requireAttention?'<span class="label label-warning">Check</span> ':'')?>
@@ -241,6 +252,12 @@ function wrg_showAdminOrderUpdatePage() {
     $baseURL = $wo->getAdminPageURL();
     $orderURL = add_query_arg("adm_page","order",$baseURL);
     $orderUpdateURL = add_query_arg(array("adm_page"=>"order_update","order_id"=>$orderId),$baseURL);
+    
+    
+    $backURL = $_REQUEST["back"];
+    if (empty($backURL)) {
+        $backURL = $orderURL;
+    }
 
     $order = $os->getOrderById($orderId);
     
@@ -271,6 +288,7 @@ function wrg_showAdminOrderUpdatePage() {
     ?>
     <form class="well" method="POST" action="<?=$orderUpdateURL?>">
         <input type="hidden" name="order_id" value="<?=$order->id?>">
+        <input type="hidden" name="back" value="<?=$backURL?>">
         <label for="status_id">Status</label>
         <select name="status_id" id="status_id">
             <?php foreach($statuses as $status_id=>$description) { ?>
@@ -280,7 +298,7 @@ function wrg_showAdminOrderUpdatePage() {
         <label for="delivery_number">Airway Bill</label>
         <input type="text" name="delivery_number" value="<?=(!empty($order->deliveryNumber)?$order->deliveryNumber:'')?>"></input>
         <label></label>
-        <a href="<?=$orderURL?>" class="btn">Back to Order</a>
+        <a href="<?=$backURL?>" class="btn">Back to Order</a>
         <button type="submit" class="btn btn-primary">Update</button>
     </form>
     
@@ -291,10 +309,14 @@ function wrg_showAdminOrderUpdatePage() {
         $error = "Invalid order Id";
     }
     
+    if ($error) {
+        $backURL = $orderUpdateURL;
+    }
+    
     if (!empty($error)) {
-        echo '<div class="alert alert-error"><a class="close" href="'.$orderUpdateURL.'">×</a>'.$error.'</div>';
+        echo '<div class="alert alert-error"><a class="close" href="'.$backURL.'">×</a>'.$error.'</div>';
     } else if (!empty($result)) {
-        echo '<div class="alert alert-success"><a class="close" href="'.$orderURL.'">×</a>'.$result.'</div>';
+        echo '<div class="alert alert-success"><a class="close" href="'.$backURL.'">×</a>'.$result.'</div>';
     }
     
     $ret = ob_get_contents();
@@ -425,6 +447,12 @@ function wrg_showAdminOrderSendMailPage() {
     $adminURL = $wo->getAdminPageURL();
     $sendMailURL = add_query_arg(array("order_id"=>$orderId,"adm_page"=>"order_send_mail"), $adminURL);
     $orderURL = add_query_arg("adm_page","order",$baseURL);
+    $backURL = $_REQUEST["back"];
+    if (empty($backURL)) {
+        $backURL = $orderURL;
+    } else {
+        $sendMailURL = add_query_arg(array("back"=>urlencode($backURL)), $sendMailURL);
+    }
     
     $os = new OrderService();
     $order = $os->getOrderById($orderId);
@@ -486,6 +514,7 @@ function wrg_showAdminOrderSendMailPage() {
     <form id="send_mail_form" class="well" method="POST" action="<?=$sendMailURL?>">
         <input type="hidden" name="order_id" value="<?=$order->id?>">
         <input type="hidden" name="template" value="<?=$template?>">
+        <input type="hidden" name="back" value="<?=$backURL?>">
         
         <label for="mail_to">To</label>
         <input type="text" name="mail_to" value="<?=$mail_to?>"/>
@@ -497,7 +526,7 @@ function wrg_showAdminOrderSendMailPage() {
         <textarea id="mail_message" name="mail_message" rows="10" class="span4"><?=$mailTemplate?></textarea>
 
         <label></label>
-        <a href="<?=$orderURL?>" class="btn back">Back to Order</a>
+        <a href="<?=$backURL?>" class="btn back">Back to Order</a>
         <input type="submit" class="btn btn-primary" name="do_sendmail" value="Send Mail"/>
         
     </form>
@@ -530,11 +559,15 @@ function wrg_showAdminOrderSendMailPage() {
     } else {
         $error = 'Invalid order id';
     }
+
+    if (!empty($error)) {
+        $backURL = $sendMailURL;
+    }
     
     if (!empty($error)) {
-        echo '<div class="alert alert-error"><a class="close" href="'.$sendMailURL.'">×</a>'.$error.'</div>';
+        echo '<div class="alert alert-error"><a class="close" href="'.$backURL.'">×</a>'.$error.'</div>';
     } else if (!empty($result)) {
-        echo '<div class="alert alert-success"><a class="close" href="'.$orderURL.'">×</a>'.$result.'</div>';
+        echo '<div class="alert alert-success"><a class="close" href="'.$backURL.'">×</a>'.$result.'</div>';
     }
     
     $ret = ob_get_contents();
