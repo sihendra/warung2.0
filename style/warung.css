@@ -173,7 +173,6 @@ root {
 /* ### PRODUCT INFO ####*/
 #wcart_pimage {
     float:left;
-    border: 1px dashed;
     padding: 4px;
 }
 
@@ -200,7 +199,6 @@ root {
 
 li.wcart_widget {
     background-color: green !important;
-    border: 1px dotted #DDDDDD !important;
     -moz-border-radius: 10px 0px 10px 0px !important;
     -webkit-border-radius: 10px 0px 10px 0px !important;
     color: rgb(231,231,231);
