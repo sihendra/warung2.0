@@ -462,6 +462,9 @@ function wrg_showShippingSimPage($content) {
     
     $cities = GenericShippingService::getAllDestinations();
     $simURL = add_query_arg("wrg_action","shipping_sim");
+    $wo = new WarungOptions();
+    $baseURL = $wo->getAdminPageURL();
+    $cityURL = add_query_arg(array("adm_page"=>"city_search","json"=>"1"), $baseURL);
     
     // param
     $weight = $_REQUEST["weight"];
@@ -486,13 +489,28 @@ function wrg_showShippingSimPage($content) {
         }
     }
     ?>
-    <form action="<?=$simURL?>" method="POST">
-        <?= WarungUtils::htmlSelect('city', 'city', $cities, $destination, '', '-- Pilih Kota --') ?>
+    <script type="text/javascript" src="<?= WARUNG_ROOT_URL ?>scripts/jquery.jsonSuggest-2.js"></script>
+    <form action="<?=$simURL?>" method="POST" id="shippingSim">
+        <input type="text" name="city" id="city" placeholder="Masukan kota">
+        <br/>
         <input type="text" name="weight" value="<?=$weight?>"> Kg
+        <br/>
         <input type="submit" value="Cek Ongkir" name="shipping_sim">
     </form>
+    <style>
+        #shippingSim input {
+            width: 50%;
+        }
+    </style>
+    <script>
+        jQuery(document).ready(function(){
+            var theCityUrl = "<?=$cityURL?>";
+            jQuery("input#city").jsonSuggest({url: theCityUrl}); 
+        });
+    </script>
     <?php if (!empty($res)): asort($res)?>
         <div class="alert">
+            <p>Ongkos kirim ke <?=  ucwords($destination);?>:</p>
         <?php foreach($res as $name=>$price) :?>
             <li><?= WarungUtils::formatCurrency($price). " (".$name.")"?> </li>
         <?php endforeach;?>
@@ -735,6 +753,15 @@ function wrg_showAdminPage($content) {
         }
         
     } else {
+        // json?
+        
+        $thePage = $_REQUEST["adm_page"];
+        if ($thePage == "product_search") {
+            echo wrg_jsonProducts();
+        } else if ($thePage == "city_search") {
+            echo wrg_jsonCity();
+        } else {
+        
         // login page
         ?>
     <form action="<?php echo get_bloginfo('home'); ?>/wp-login.php" method="POST" class="well span3">
@@ -749,6 +776,8 @@ function wrg_showAdminPage($content) {
 
     </form>
         <?php
+        
+        }
     }
     
     $ret = ob_get_contents();
