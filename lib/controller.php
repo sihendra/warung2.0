@@ -505,7 +505,7 @@ function wrg_showShippingSimPage($content) {
     <script>
         jQuery(document).ready(function(){
             var theCityUrl = "<?=$cityURL?>";
-            jQuery("input#city").jsonSuggest({url: theCityUrl}); 
+            jQuery("input#city").jsonSuggest({url: theCityUrl, minCharacters: 3}); 
         });
     </script>
     <?php if (!empty($res)): asort($res)?>
