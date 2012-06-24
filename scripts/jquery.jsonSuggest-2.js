@@ -229,6 +229,15 @@
 				}
 				else if (settings.url && typeof settings.url === 'string') {
 					var text = this.value;
+                                        
+                                        // hendra, 24 Jun 2012:
+                                        //     fix minCharacters
+                                        if (text.length < settings.minCharacters) {
+                                            $(results).html('').hide();
+                                            return;
+                                        }
+                                        
+                                        
 					$(results).html('<li class="ui-menu-item ajaxSearching"><a class="ui-corner-all">Searching...</a></li>').
 						show().css('height', 'auto');
 					
