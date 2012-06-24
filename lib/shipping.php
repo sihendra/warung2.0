@@ -91,7 +91,8 @@ abstract class AbstractShippingService implements IShippingService2 {
                 "SELECT destination FROM (
                     SELECT DISTINCT(destination) destination
                      FROM $tbl
-                ) a WHERE destination like %s", $query.'%');
+                     WHERE destination like %s
+                ) a ", $query.'%');
                 
         $result = $wpdb->get_results($sql);
         
