@@ -17,7 +17,7 @@ jQuery(document).ready(function() {
                 required: true,
                 number: true
             },
-            scity: "mustselect",
+            scity: "required",
             sname: "required",
             saddress: "required",
             spaymentmethod: "required",
