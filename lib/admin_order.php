@@ -30,7 +30,7 @@ function wrg_showAdminOrderPage() {
     }
     
     $urlpart = parse_url($baseURL);
-    $backURL = $_SERVER["REQUEST_URI"].'?'.$_SERVER["QUERY_STRING"];//$urlpart["path"] . "?" . $urlpart["query"];  
+    $backURL = $_SERVER["REQUEST_URI"];//$urlpart["path"] . "?" . $urlpart["query"];  
     
     // view: tab states
     $activeTab = array ("1"=>"","2"=>"","3"=>"","4"=>"");
@@ -563,14 +563,16 @@ function wrg_showAdminOrderSendMailPage() {
         $error = 'Invalid order id';
     }
 
-    if (!empty($error)) {
-        $backURL = $sendMailURL;
-    }
+//    if (!empty($error)) {
+//        $backURL = $sendMailURL;
+//    }
     
     if (!empty($error)) {
         echo '<div class="alert alert-error"><a class="close" href="'.$backURL.'">×</a>'.$error.'</div>';
     } else if (!empty($result)) {
-        echo '<div class="alert alert-success"><a class="close" href="'.$backURL.'">×</a>'.$result.'</div>';
+        header('Location: '. $backURL);
+        return;
+        //echo '<div class="alert alert-success"><a class="close" href="'.$backURL.'">×</a>'.$result.'</div>';
     }
     
     $ret = ob_get_contents();
