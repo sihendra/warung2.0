@@ -316,7 +316,10 @@ function wrg_showAdminOrderUpdatePage() {
     if (!empty($error)) {
         echo '<div class="alert alert-error"><a class="close" href="'.$backURL.'">×</a>'.$error.'</div>';
     } else if (!empty($result)) {
-        echo '<div class="alert alert-success"><a class="close" href="'.$backURL.'">×</a>'.$result.'</div>';
+        // redirect to backURL
+        header('Location: '.$backURL);
+        return;
+//        echo '<div class="alert alert-success"><a class="close" href="'.$backURL.'">×</a>'.$result.'</div>';
     }
     
     $ret = ob_get_contents();
