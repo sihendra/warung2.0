@@ -30,7 +30,7 @@ function wrg_showAdminOrderPage() {
     }
     
     $urlpart = parse_url($baseURL);
-    $backURL = $urlpart["path"] . "?" . $urlpart["query"];  
+    $backURL = $_SERVER["REQUEST_URI"].'?'.$_SERVER["QUERY_STRING"];//$urlpart["path"] . "?" . $urlpart["query"];  
     
     // view: tab states
     $activeTab = array ("1"=>"","2"=>"","3"=>"","4"=>"");
