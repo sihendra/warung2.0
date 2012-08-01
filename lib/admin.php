@@ -148,7 +148,7 @@ class WarungAdmin2 {
                 }
                 $options['prod_options'] = WarungUtils::parseParametersToObject($_POST, 'prod_option');
 
-                update_option(Warung::$db_option, $options);
+                update_option(WarungOptions::$OPT_NAME, $options);
 
                 echo '<div class="updated fade"><p>Plugin Setting Saved.</p></div>';
             } else {
