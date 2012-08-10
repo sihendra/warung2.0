@@ -1195,18 +1195,18 @@ function wrg_sendsms($msisdn, $text) {
         $text = urlencode($text);
         $send_url = "https://sent.ly/command/sendsms?username=sihendra@gmail.com&password=c0b4c0b4&to=$msisdn&text=$text";
         
-        error_log('about to hit: '.$send_url);
+        //error_log('about to hit: '.$send_url);
         
         $response = @file_get_contents($send_url);
         
-        error_log('sms response: '.$response);
+        //error_log('sms response: '.$response);
         
         if (strpos(strtolower($response),'error') === FALSE) {
             // not error
             return TRUE;            
         }
     } else {
-        error_log('msisdn tdk valid: '.json_encode($msisdn));
+        //error_log('msisdn tdk valid: '.json_encode($msisdn));
     }
     
     return FALSE;
