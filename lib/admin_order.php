@@ -100,7 +100,7 @@ function wrg_showAdminOrderPage() {
     <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
+                <th>Create Date</th>
                 <th>Info</th>
                 <th>City</th>
                 <?php if($orderStatus == OrderService::$STATUS_SENT) :?> 
@@ -130,18 +130,13 @@ function wrg_showAdminOrderPage() {
             ?>
             <tr class="show-info">
                 <td><?=($order->requireAttention?'<span class="label label-warning">Check</span> ':'')?>
-                    <?php if($orderStatus == OrderService::$STATUS_NEW):?>
                     <p class="info-less"><?=WarungUtils::relativeTime($order->dtcreated)?></p>
-                    <div class="info hide"><dl><dt>Create Date</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtcreated));?></dd></dl></div>
-                    <?php else:?>
-                    <p class="info-less"><?=WarungUtils::relativeTime($order->dtstatus)?></p>
                     <div class="info hide">
                         <dl>
                             <dt>Create Date</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtcreated));?></dd>
                             <dt>Status Date</dt><dd><?=strftime('%d/%b/%y %H:%M',strtotime($order->dtstatus));?></dd>
                         </dl>
                     </div>
-                    <?php endif;?>
                 </td>
                 <td>
                     <p class="info-less"><?=$shippingInfo->name?></p>
@@ -279,6 +274,23 @@ function wrg_showAdminOrderUpdatePage() {
         if (!empty($deliveryNumber)) {
             $os->updateDeliveryNumber($orderId, $deliveryNumber);
             $result="Changes Saved";
+        
+            
+            $names = explode(" ",$shippingInfo->name);
+            if (!empty($names)) {
+                $names = ucwords(strtolower($names[0]));
+            } else {
+                $names = '';
+            }
+            // send sms here
+            $sms = wrg_sendsms(
+                    $shippingInfo->phone, 
+                    wrg_orderSentSMSTemplate(array(
+                        "shipping.name"=> $names,
+                        "order.delivery_number"=>$deliveryNumber)
+                    )
+            );
+            
         }
         
         if (empty($result)) {
@@ -332,6 +344,23 @@ function wrg_orderNewMailTemplate($args=array()) {
     ob_start();
     $ret = "";
     
+    $td_style = 'style="vertical-align: top;
+            border-bottom: 1px solid rgb(238,238,238); 
+            text-align: left;
+            padding-left:10px;"';
+    
+    $table_style = 'style="border-spacing: 0px;"';
+    
+    $td_title_style = 'style="vertical-align: top;
+            border-bottom: 1px solid rgb(238,238,238); 
+            text-align: left;
+            padding-left:10px;
+            text-align: right;
+            font-weight: bold;
+            padding: 2px;"';
+    
+    $ul_style='style="padding-left: 20px;"';
+    
     ?>
     <style>
         table td { 
@@ -358,26 +387,26 @@ function wrg_orderNewMailTemplate($args=array()) {
          <div>
              <p>Mba Sofie,</p>
 
-         <table>
+         <table <?php echo $table_style?>>
              <tr>
-                 <td class="title">Nama</td>
-                <td>%shipping.name%</td>
+                 <td class="title" <?php echo $td_title_style?>>Nama</td>
+                <td <?php echo $td_style?>>%shipping.name%</td>
              </tr>
              <tr>
-                 <td class="title">Telepon</td>
-                 <td>%shipping.phone%</td>
+                 <td class="title" <?php echo $td_title_style?>>Alamat</td>
+                 <td <?php echo $td_style?>>%shipping.address%<br/>%shipping.city%</td>
              </tr>
              <tr>
-                 <td class="title">Alamat</td>
-                 <td>%shipping.address%<br/>%shipping.city%</td>
+                 <td class="title" <?php echo $td_title_style?>>Telepon</td>
+                 <td <?php echo $td_style?>>%shipping.phone%</td>
+             </tr>
+             <tr>
+                 <td class="title" <?php echo $td_title_style?>>Pesanan</td>
+                 <td <?php echo $td_style?>>%order.items%</td>
              </tr>
              <tr>
                  <td class="title">Catatan</td>
-                 <td>%shipping.additionalInfo%</td>
-             </tr>
-             <tr>
-                 <td class="title">Pesanan</td>
-                 <td>%order.items%</td>
+                 <td <?php echo $td_style?>>%shipping.additionalInfo%</td>
              </tr>
          </table>
          
@@ -427,6 +456,16 @@ function wrg_orderSentMailTemplate($args=array()) {
     
     $ret = ob_get_contents();
     ob_end_clean();
+    
+    if (!empty($args)) {
+        $ret = WarungUtils::generateTemplate($ret, $args);
+    }
+    
+    return $ret;
+}
+
+function wrg_orderSentSMSTemplate($args=array()) {
+    $ret = "Halo %shipping.name%, pesanan sudah saya kirim dengan nomor resi: %order.delivery_number%\nTrmksh byk\n\n-Reni\nWarungsprei.com";
     
     if (!empty($args)) {
         $ret = WarungUtils::generateTemplate($ret, $args);
@@ -497,11 +536,14 @@ function wrg_showAdminOrderSendMailPage() {
                 $mailTemplate = wrg_orderNewMailTemplate(array(
                     "shipping.name"=>$shippingInfo->name,
                     "shipping.phone"=>$shippingInfo->phone,
-                    "shipping.address"=>$shippingInfo->address,
-                    "shipping.city"=>$shippingInfo->city,
+                    "shipping.address"=>nl2br($shippingInfo->address),
+                    "shipping.city"=>ucwords($shippingInfo->city),
                     "shipping.additionalInfo"=>$shippingInfo->additionalInfo,
                     "order.items"=>WarungUtils::formatItems($order->items)
                 ));
+                
+                $mail_to = 'butikceria@gmail.com';
+                $mail_subject = ucwords($shippingInfo->name.' '.$shippingInfo->city);
             } else if ($template == "order_sent") {
                 $shippingInfo = $order->shippingInfo;
                 $mailTemplate = wrg_orderSentMailTemplate(array(
@@ -1144,5 +1186,29 @@ function wrg_htmlGetCart() {
         });
     </script>
     <?php endif;
+}
+
+function wrg_sendsms($msisdn, $text) {
+    if(intval($msisdn)) {
+        
+        $msisdn = urlencode("+62".intval($msisdn));
+        $text = urlencode($text);
+        $send_url = "https://sent.ly/command/sendsms?username=sihendra@gmail.com&password=c0b4c0b4&to=$msisdn&text=$text";
+        
+        error_log('about to hit: '.$send_url);
+        
+        $response = @file_get_contents($send_url);
+        
+        error_log('sms response: '.$response);
+        
+        if (strpos(strtolower($response),'error') === FALSE) {
+            // not error
+            return TRUE;            
+        }
+    } else {
+        error_log('msisdn tdk valid: '.json_encode($msisdn));
+    }
+    
+    return FALSE;
 }
 ?>
