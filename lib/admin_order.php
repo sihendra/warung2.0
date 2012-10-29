@@ -465,7 +465,7 @@ function wrg_orderSentMailTemplate($args=array()) {
 }
 
 function wrg_orderSentSMSTemplate($args=array()) {
-    $ret = "Halo %shipping.name%, pesanan sudah saya kirim dengan nomor resi: %order.delivery_number%\nTrmksh byk\n\n-Reni\nWarungsprei.com";
+    $ret = "Halo %shipping.name%, pesanan sudah kami kirim. Ini nmr resinya:\n%order.delivery_number%\nTrmksh byk\n\n-Reni\nWarungsprei.com";
     
     if (!empty($args)) {
         $ret = WarungUtils::generateTemplate($ret, $args);
@@ -516,7 +516,7 @@ function wrg_showAdminOrderSendMailPage() {
                 $headers = "Content-type: text/html;\r\n";
                 $headers .= "From: Warungsprei.com <info@warungsprei.com>\r\n";
                 
-                if (mail($mailTo, $subject, $message, $headers)) {
+                if (wp_mail($mailTo, $subject, $message, $headers)) {
                     $result = "Email order sudah terkirim";
                 } else {
                     $error = "Gagal mengirim Email order";
@@ -595,7 +595,7 @@ function wrg_showAdminOrderSendMailPage() {
 		return false;
             });
             
-            $("#mail_message").redactor();
+            $("#mail_message").redactor({mobile:true});
         });
     </script>
             <?php
@@ -1188,16 +1188,25 @@ function wrg_htmlGetCart() {
     <?php endif;
 }
 
+function format_msisdn($msisdn) {
+    if (is_numeric($msisdn)) {
+        return preg_replace('/^((0)|(\+0)|(62))/', '+62', $msisdn);
+    } else {
+       return $msisdn;
+    }
+}
+
 function wrg_sendsms($msisdn, $text) {
-    if(intval($msisdn)) {
+    if(is_numeric($msisdn)) {
         
-        $msisdn = urlencode("+62".intval($msisdn));
+        $msisdn = urlencode(format_msisdn($msisdn));
         $text = urlencode($text);
         $send_url = "https://sent.ly/command/sendsms?username=sihendra@gmail.com&password=c0b4c0b4&to=$msisdn&text=$text";
         
-        //error_log('about to hit: '.$send_url);
-        
-        $response = @file_get_contents($send_url);
+	$log = 'about to hit: '.$send_url;
+//        var_dump($log);
+
+        $response = @wp_remote_fopen($send_url);
         
         //error_log('sms response: '.$response);
         
