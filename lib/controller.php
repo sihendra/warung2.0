@@ -626,8 +626,10 @@ function wrg_showOrderComplete() {
     $headers .= "From: Warungsprei.com <info@warungsprei.com>\r\n";
 
     // send to pemesan bcc admin
-    $headers .= "Bcc: " . $admin_email . "\r\n";
-    mail($email_pemesan, $subject, $message, $headers);
+    // cc/bcc not working in gmail?
+    // $headers .= "Bcc: " . $admin_email . "\r\n";
+    wp_mail($email_pemesan, $subject, $message, $headers);
+    wp_mail($admin_email, $subject, $message, $headers);
 
 
     // ------ e.LOGIC -----------
