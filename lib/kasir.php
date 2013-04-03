@@ -15,7 +15,7 @@ class WarungKasir2 implements IKasir2 {
     private $freeShippingDest;
     
     public function __construct($discountMoreThan3=0, $discountReseller=8000, $origin='jakarta', 
-            $freeShippingDest = array('jakarta'=>1.5, 'bogor'=>1.5, 'depok'=>1.5 ,'tangerang'=>1.5,'bekasi'=>1.5)) {
+            $freeShippingDest = array()/*array('jakarta'=>1.5, 'bogor'=>1.5, 'depok'=>1.5 ,'tangerang'=>1.5,'bekasi'=>1.5)*/) {
         
         $this->DISCOUNT_MORE_THAN3 = $discountMoreThan3;
         $this->DISCOUNT_RESELLER = $discountReseller;
@@ -194,7 +194,7 @@ class WarungKasir2 implements IKasir2 {
             }
             
             //rounding?
-            if ($bagTotalWeight - floor($bagTotalWeight) > .1) {
+            if (number_format($bagTotalWeight - floor($bagTotalWeight),1) > .3) {
                 $bagTotalWeight = ceil($bagTotalWeight);
             }
             
